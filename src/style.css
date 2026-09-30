@@ -6,7 +6,7 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .w{max-width:1160px;margin:0 auto;padding:0 20px}
 
 /* nav chips */
-#eyai .toc{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:var(--eyai-head,0px);z-index:50;transition:top .2s}
+#eyai .toc{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:var(--eyai-head,max(84px,11vh));z-index:50;transition:top .2s}
 #eyai .toc .w{display:flex;gap:8px;overflow-x:auto;padding-top:14px;padding-bottom:14px;scrollbar-width:none}
 #eyai .toc .w::-webkit-scrollbar{display:none}
 #eyai .toc a{flex:0 0 auto;font-size:14px;padding:8px 14px;border:1px solid var(--line);white-space:nowrap;transition:background .15s,border-color .15s}
