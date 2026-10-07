@@ -1,5 +1,5 @@
 import json, os, re, urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 API = "https://artificialanalysis.ai/api/v2/language/models/free"
 PUBLISHED = "https://eyacademy.github.io/ai-guide/data/aa-index.json"
@@ -43,11 +43,18 @@ def fetch():
             continue
         name = re.sub(r"\s*\([^)]*\)\s*$", "", m.get("name", "")).strip()
         if name not in best or score > best[name]["score"]:
-            best[name] = {"name": name, "creator": (m.get("model_creator") or {}).get("name", ""), "score": round(score)}
-    top = sorted(latest(best.values()), key=lambda x: -x["score"])[:20]
+            best[name] = {"name": name, "creator": (m.get("model_creator") or {}).get("name", ""), "score": round(score),
+                          "released": m.get("release_date") or ""}
+    current = sorted(latest(best.values()), key=lambda x: -x["score"])
+    year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).date().isoformat()
+    by_creator = {}
+    for m in current:
+        if m["released"] >= year_ago:
+            by_creator.setdefault(m["creator"], []).append(m["name"])
+    top = [{k: m[k] for k in ("name", "creator", "score")} for m in current[:20]]
     if len(top) < 5:
         raise ValueError("too few models")
-    return {"updated": datetime.now(timezone.utc).isoformat(), "models": top}
+    return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator}
 
 
 try:

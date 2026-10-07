@@ -18,6 +18,17 @@ def links(items):
     return '<ul class="links">' + "".join(
         f'<li><a href="{u}" target="_blank" rel="noopener">{t} <span>{s}</span></a></li>' for t, u, s in items) + "</ul>"
 
+MODELS = globals().get("MODELS") or {}
+
+
+def models(creator, fallback, n=4):
+    return (MODELS.get(creator) or fallback)[:n]
+
+
+def model(creator, fallback):
+    return models(creator, [fallback], 1)[0]
+
+
 def vendor(by, name, text, pills, lk):
     p = "".join(f'<span class="pill{" top" if i == 0 else ""}">{x}</span>' for i, x in enumerate(pills))
     return f'<div class="vendor"><span class="by">{by}</span><h3>{name}</h3><p>{text}</p><div class="pills">{p}</div>{links(lk)}</div>'
@@ -47,22 +58,22 @@ out.append(sec("rating", "01", "Рейтинг моделей",
 # 3. chat
 v = '<div class="vendors four">'
 v += vendor("OpenAI", "ChatGPT",
-            "Универсальный помощник. Chat подходит для вопросов, текстов и файлов, Work берёт длинную задачу и возвращает готовые документы, таблицы и презентации. В приложении для компьютера есть режим Codex для работы с кодом. Самые сильные модели GPT-6 открыты в Work, Codex и тарифах Pro и Business.",
-            ["GPT-6 Astra", "GPT-6.1 Sol", "GPT-6 Luna", "GPT-5.6"],
+            "Универсальный помощник. Chat подходит для вопросов, текстов и файлов, Work берёт длинную задачу и возвращает готовые документы, таблицы и презентации. В приложении для компьютера есть режим Codex для работы с кодом. Самые сильные модели открыты в Work, Codex и платных тарифах.",
+            models("OpenAI", ["GPT-6 Astra", "GPT-6.1 Sol", "GPT-5.6 Terra", "GPT-6 Luna"]),
             [("Чат", "https://chatgpt.com", "chatgpt.com"),
              ("Приложение для компьютера: Chat, Work, Codex", "https://openai.com/chatgpt/download/", "openai.com"),
              ("Codex в браузере", "https://chatgpt.com/codex", "chatgpt.com/codex"),
              ("API", "https://platform.openai.com", "platform.openai.com")])
 v += vendor("Anthropic", "Claude",
-            "Лидер рейтинга выше. Понимает задачу с полуслова и пишет живым языком, поэтому текст меньше приходится править. Сильнее всех в программировании и длинных документах. Opus 5.5 подходит для большинства задач, Fable 5.1 для долгой самостоятельной работы, Sonnet 5.5 работает в бесплатном тарифе.",
-            ["Claude Opus 5.5", "Claude Fable 5.1", "Claude Sonnet 5.5", "Claude Haiku 4.5"],
+            "Понимает задачу с полуслова и пишет живым языком, поэтому текст меньше приходится править. Силён в программировании, длинных документах и долгой самостоятельной работе.",
+            models("Anthropic", ["Claude Opus 5.5", "Claude Sonnet 5.5", "Claude Fable 5.1", "Claude Haiku 4.5"]),
             [("Чат", "https://claude.ai", "claude.ai"),
              ("Приложение: Cowork и Claude Code", "https://claude.com/download", "claude.com/download"),
              ("Claude в Excel, Word и PowerPoint", "https://claude.com/claude-for-microsoft-365", "claude.com"),
              ("API", "https://platform.claude.com", "platform.claude.com")])
 v += vendor("Google", "Gemini",
-            "Выбор для компаний на Google Workspace: встроен в Gmail, Docs, Sheets и Meet. Большое контекстное окно, удобен для объёмных документов. По умолчанию работает Gemini 3.8 Flash, для сложных задач есть 3.1 Pro.",
-            ["Gemini 3.1 Pro", "Gemini 3.8 Flash", "Gemini 3.5 Flash-Lite"],
+            "Выбор для компаний на Google Workspace: встроен в Gmail, Docs, Sheets и Meet. Большое контекстное окно, удобен для объёмных документов.",
+            models("Google", ["Gemini 4 Argon", "Gemini 3.8 Flash", "Gemini 3.1 Pro"]),
             [("Чат", "https://gemini.google.com/app", "gemini.google.com"),
              ("Gemini Notebook (бывший NotebookLM)", "https://notebook.google.com", "notebook.google.com"),
              ("Gemini в Gmail, Docs и Sheets", "https://workspace.google.com/solutions/ai/", "workspace.google.com"),
@@ -100,15 +111,15 @@ llm += '<div class="grid">' + "".join(f'<div class="card"><b>{a}</b><p>{b}</p></
 ]) + "</div>"
 llm += h3("Другие чат-боты")
 llm += grid([
-    ("DeepSeek", "Сильная китайская модель V4.1 Flash. Бесплатный чат, веса можно скачать и запустить у себя.", "https://chat.deepseek.com", "открытая"),
+    ("DeepSeek", f"Сильная китайская модель {model('DeepSeek', 'DeepSeek V4.1 Flash')}. Бесплатный чат, веса можно скачать и запустить у себя.", "https://chat.deepseek.com", "открытая"),
     ("Perplexity", "Поиск в интернете с источниками под каждым ответом.", "https://www.perplexity.ai"),
-    ("Grok", "Модель Grok 4.7 от SpaceXAI. Встроен в соцсеть X.", "https://grok.com"),
+    ("Grok", f"Модель {model('SpaceXAI', 'Grok 4.7')} от SpaceXAI. Встроен в соцсеть X.", "https://grok.com"),
     ("Genspark", "Чат, презентации, таблицы и исследования в одном месте.", "https://www.genspark.ai"),
-    ("Meta AI", "Ассистент на модели Muse Spark. В Казахстане удобнее всего через WhatsApp.", "https://www.meta.ai"),
+    ("Meta AI", f"Ассистент на модели {model('Meta', 'Muse Spark 1.3')}. В Казахстане удобнее всего через WhatsApp.", "https://www.meta.ai"),
     ("Mistral Vibe", "Европейский чат-бот, до мая 2026 назывался Le Chat.", "https://chat.mistral.ai", "открытая"),
-    ("Qwen", "Модели Alibaba. Флагман Qwen3.8 Max.", "https://chat.qwen.ai", "открытая"),
-    ("Z.ai (GLM)", "GLM-5.3, одна из сильнейших открытых моделей.", "https://chat.z.ai", "открытая"),
-    ("Kimi", "Kimi K3 от Moonshot AI. Умеет запускать рой агентов для больших задач.", "https://www.kimi.com", "открытая"),
+    ("Qwen", f"Модели Alibaba. Флагман {model('Alibaba', 'Qwen3.8 Max')}.", "https://chat.qwen.ai", "открытая"),
+    ("Z.ai (GLM)", f"{model('Z AI', 'GLM-5.3')}, одна из сильнейших открытых моделей.", "https://chat.z.ai", "открытая"),
+    ("Kimi", f"{model('Kimi', 'Kimi K3')} от Moonshot AI. Умеет запускать рой агентов для больших задач.", "https://www.kimi.com", "открытая"),
     ("t3.chat", "Одна подписка на модели разных компаний в одном окне.", "https://t3.chat"),
 ])
 out.append(sec("llm", "02", "Чат-боты и модели",
@@ -131,7 +142,7 @@ ag += grid([
 ])
 ag += h3("Агенты в облаке, 24/7", "Новый класс агентов: у каждого свой облачный компьютер с браузером. Ничего не нужно устанавливать, задачи идут даже при закрытом ноутбуке. Данные хранятся у поставщика.")
 ag += grid([
-    ("dots", "OpenAI, сентябрь 2026. Постоянные агенты на GPT-6 Astra в ChatGPT, Slack и Teams. В фоне ищут, чем помочь.", "https://openai.com/index/introducing-dots/", "Pro", True, "openai.com"),
+    ("dots", "OpenAI, сентябрь 2026. Постоянные агенты на самой сильной модели OpenAI в ChatGPT, Slack и Teams. В фоне ищут, чем помочь.", "https://openai.com/index/introducing-dots/", "Pro", True, "openai.com"),
     ("Grok Bot", "SpaceXAI, август 2026. Команда ботов на одном облачном компьютере. Задачу можно показать, и бот запомнит порядок действий.", "https://x.ai/bot", "SuperGrok", True, "x.ai/bot"),
     ("Muse", "Meta, сентябрь 2026. Личный агент с отдельной виртуальной машиной. Агент Sentinel пропускает в интернет только одобренные действия.", "https://muse.ai", "только США", True),
     ("Gemini Spark", "Google. Агент работает круглосуточно, задачи можно ставить письмом в Gmail.", "https://gemini.google/overview/agent/spark/", "не во всех странах", True, "gemini.google"),
@@ -273,7 +284,12 @@ c += grid([
 out.append(sec("company", "06", "ИИ в своей компании", None, c))
 
 # 8. detect
-d = grid([
+d = h3("Фото, видео и аудио", "Если метки нет, это ещё не значит, что файл создал человек.")
+d += grid([
+    ("SynthID Detector", "Проверяет фото, видео и аудио на скрытую метку ИИ от Google, OpenAI, NVIDIA и Kakao. Бесплатно, около 10 проверок в день.", "https://synthid.com", "новое"),
+])
+d += h3("Текст")
+d += grid([
     ("Pangram", "Детектор с самой низкой долей ложных срабатываний в независимых исследованиях.", "https://www.pangram.com"),
     ("GPTZero", "Популярный детектор, теперь часть Superhuman (Grammarly).", "https://gptzero.me"),
     ("Originality.ai", "Детектор с настройкой допустимой доли ИИ-текста, проверка плагиата и фактов.", "https://originality.ai"),
@@ -287,7 +303,7 @@ d += grid([
     ("QuillBot", "Проверка на 100+ языках, входит в Premium.", "https://quillbot.com/plagiarism-checker"),
     ("Scribbr", "Проверка академических работ на технологии Turnitin.", "https://www.scribbr.com"),
 ])
-out.append(sec("detect", "07", "Проверка на ИИ-текст и плагиат", None, d))
+out.append(sec("detect", "07", "Проверка: ИИ или не ИИ", None, d))
 
 out.append("</div>")
 out.append('<div class="cta"><div class="w"><div><h2>Хотите научить команду работать с ИИ?</h2><p>Корпоративные тренинги Академии бизнеса EY под задачи вашей компании.</p></div>'

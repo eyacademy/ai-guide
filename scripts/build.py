@@ -18,11 +18,14 @@ def color(creator):
     return next((c for n, c in COLORS.items() if n in k), "#9a9aa6")
 
 
-def chart():
+def load_data():
     path = os.path.join(OUT, "data", "aa-index.json")
     if not os.path.exists(path):
         path = os.path.join(SRC, "aa-snapshot.json")
-    data = json.load(open(path, encoding="utf-8"))
+    return json.load(open(path, encoding="utf-8"))
+
+
+def chart(data):
     models = data["models"][:20]
     top = max(m["score"] for m in models)
     bars, legend, seen = [], [], set()
@@ -38,8 +41,9 @@ def chart():
     return "".join(bars), "".join(legend), f"Обновлено {d.day} {MONTHS[d.month - 1]} {d.year} · обновляется ежедневно"
 
 
-body = runpy.run_path(os.path.join(SRC, "content.py"))["BODY"]
-bars, legend, date = chart()
+data = load_data()
+body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {})})["BODY"]
+bars, legend, date = chart(data)
 body = body.replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
