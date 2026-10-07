@@ -22,7 +22,7 @@ def latest(models):
     # Keep only the newest version in each line: Claude Opus 5.5 over Claude Opus 5.
     families = {}
     for m in models:
-        fam = (m["creator"], re.sub(r"[\d.\-\s]+", " ", m["name"].lower()).strip())
+        fam = (m["creator"], re.sub(r"[\d.\-\s]+", " ", re.sub(r"\bpreview\b", "", m["name"].lower())).strip())
         if fam not in families or version(m["name"]) > version(families[fam]["name"]):
             families[fam] = m
     return list(families.values())
