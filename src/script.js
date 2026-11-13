@@ -67,12 +67,15 @@ var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:"
   credit2:"Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide",
   nothing:"Ничего не найдено", knowledgeNote:""};
 var GUIDE = "guide.html";
-(function(){
-  var r = document.getElementById("eyai"), raw = r && r.getAttribute("data-i18n");
-  var lang = r && r.getAttribute("data-lang");
+function readI18n(){
+  // The Tilda loader carries only data-lang; the wording arrives with the page it pulls in.
+  var r = document.getElementById("eyai");
+  if(!r) return;
+  var lang = r.getAttribute("data-lang"), raw = r.getAttribute("data-i18n");
   if(lang && lang !== "ru") GUIDE = lang + "/guide.html";
   if(raw) try { var o = JSON.parse(raw); for(var k in o) S[k] = o[k]; } catch(e){}
-})();
+}
+readI18n();
 var LABEL = S;
 var EFF = ["non-reasoning","minimal","low","medium","default","high","xhigh","max"];
 
@@ -609,6 +612,7 @@ function refresh(){
     var st = doc.getElementById("eyai-style"), curSt = document.getElementById("eyai-style");
     if(st && curSt) curSt.textContent = st.textContent;
     cur.parentNode.replaceChild(document.importNode(fresh,true), cur);
+    readI18n();
     bindToc();
     initCompare();
     initRating();
