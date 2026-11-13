@@ -5,7 +5,10 @@ API = "https://artificialanalysis.ai/api/v2/language/models"
 # Arena rankings for pictures, video and sound; the free tier returns name, creator and elo.
 MEDIA = {"image": "text-to-image", "video": "text-to-video", "speech": "text-to-speech", "music": "music/instrumental"}
 PUBLISHED = "https://eyacademy.github.io/ai-guide/data/aa-index.json"
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_site", "data", "aa-index.json")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "_site", "data", "aa-index.json")
+SEED = os.path.join(ROOT, "src", "aa-last.json")
+KEEP = ("cost", "cost_total", "time", "tokens", "tokens_total", "speed", "ttft")
 
 
 def get(url, headers=None):
@@ -134,10 +137,12 @@ def fetch():
     key = os.environ["AA_API_KEY"]
     try:
         models = pages(API, key)
+        print("endpoint: full")
     except urllib.error.HTTPError as e:
         if e.code != 403:
             raise
         models = pages(API + "/free", key)
+        print("endpoint: free (403 on the full one)")
     if models:  # field names for the log, to check speed and latency are found
         print("model fields:", sorted(models[0]), "| performance_v3:", sorted((models[0].get("performance_v3") or {})))
     year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).date().isoformat()
@@ -189,6 +194,28 @@ except Exception as e:
         print("no published data:", e2)
         data = None
 
+def carry(data):
+    """Keep earlier measurements when today's answer lacks them (a lapsed key tier, an API hiccup)."""
+    old = {}
+    for src in (SEED, PUBLISHED):  # the published file is newer, so it wins
+        try:
+            rows = (get(src) if src.startswith("http") else json.load(open(src, encoding="utf-8"))).get("variants") or []
+        except Exception as e:
+            print("carry: no", src, e)
+            continue
+        for v in rows:
+            for k in KEEP:
+                if v.get(k) is not None:
+                    old.setdefault((v["family"], v.get("effort") or ""), {})[k] = v[k]
+    n = 0
+    for v in data.get("variants") or []:
+        for k, x in old.get((v["family"], v.get("effort") or ""), {}).items():
+            if v.get(k) is None:
+                v[k], n = x, n + 1
+    print("carried over", n, "values from earlier data")
+
+
 if data:
+    carry(data)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(data, open(OUT, "w", encoding="utf-8"), ensure_ascii=False)
