@@ -51,9 +51,23 @@ def model(creator, fallback):
 MEDIA = globals().get("MEDIA") or {}
 
 
+# Speed and resolution variants of the same model: "Veo 3.1 Fast", "Kling 3.0 1080p".
+VARIANT = re.compile(r"\s+(fast|lite|mini|turbo|flex|klein|quality|preview|beta|\d{3,4}p)\b.*$", re.I)
+
+
+def _ver(name):
+    return tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", name)) or (0,)
+
+
 def media(kind, pattern, fallback):
+    """Newest model of a line: latest version, plainest name, best place in the arena."""
     hits = [n for n in MEDIA.get(kind) or [] if re.search(pattern, n, re.I)]
-    name = max(hits, key=lambda n: tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", n)) or (0,)) if hits else fallback
+    if hits:
+        top = max(_ver(n) for n in hits)
+        same = [n for n in hits if _ver(n) == top]
+        name = VARIANT.sub("", min(same, key=lambda n: (len(n.split()), hits.index(n))))
+    else:
+        name = fallback
     if fallback and fallback in LOGO:
         LOGO.setdefault(name, LOGO[fallback])
     return name
