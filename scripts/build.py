@@ -122,9 +122,9 @@ def compare(data):
         sub_html += "".join(f'<button type="button" data-sub="{k}" data-for="{tab}"{" class=on" if n == 0 else ""}>{T(t)}</button>'
                             for n, (k, t) in enumerate(items))
     price = "" if not data.get("subs") else (
-        f'<span class="cmp-seg cmp-price"><button type="button" data-price="api" class=on>{T("По API")}</button>'
-        f'<button type="button" data-price="sub">{T("По подписке")}</button></span>'
-        f'<span class="cmp-seg cmp-tier" hidden><button type="button" data-tier="basic" class=on>{T("Тариф $20")}</button>'
+        f'<span class="cmp-seg cmp-price"><button type="button" data-price="api">{T("По API")}</button>'
+        f'<button type="button" data-price="sub" class=on>{T("По подписке")}</button></span>'
+        f'<span class="cmp-seg cmp-tier"><button type="button" data-tier="basic" class=on>{T("Тариф $20")}</button>'
         f'<button type="button" data-tier="top">{T("Тариф $100+")}</button></span>')
     colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)
     return (f'<div class="cmp" data-colors="{colors}">'

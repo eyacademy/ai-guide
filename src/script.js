@@ -626,7 +626,7 @@ function setupCompare(box, d){
   var list = box.querySelector(".cmp-list"), q = box.querySelector(".cmp-q"), count = box.querySelector(".cmp-count"), eff = box.querySelector(".cmp-eff input");
   var tab = box.querySelector(".cmp-tabs .on").getAttribute("data-tab"), subOf = {};
   [].forEach.call(subs.querySelectorAll("button.on"), function(b){ subOf[b.getAttribute("data-for")] = b.getAttribute("data-sub"); });
-  var price = "api", tier = "basic", plans = d.subs || {}, tabNote = note.textContent;
+  var on = box.querySelector(".cmp-price .on"), price = on ? on.getAttribute("data-price") : "api", tier = "basic", plans = d.subs || {}, tabNote = note.textContent;
   var priceEl = box.querySelector(".cmp-price"), tierEl = box.querySelector(".cmp-tier");
 
   // Cost of a task inside a subscription: API cost × the plan's share of the API price.
