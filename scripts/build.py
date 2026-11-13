@@ -121,7 +121,7 @@ def subscriptions(data):
     blend = lambda n: (3 * prices[n][0] + prices[n][1]) / 4
     base = resolve(prices, cfg["base"]["model"], cfg["base"]["fallback"])
     if not base:
-        return ""
+        return "", ""
     cost = lambda n: cfg["base"]["response_usd"] * blend(n) / blend(base)
     short = lambda n: re.sub(r"^Claude ", "", n)
     rows, marks, tables = [], set(), []
@@ -184,15 +184,15 @@ def subscriptions(data):
         foot.append("* Множители Pro неофициальные.")
     if "**" in marks:
         foot.append("** Для Go данных почти нет, это грубая оценка.")
-    names = ["Подписка и API"] + [f'{pv["name"]} по моделям' for pv in cfg["providers"]]
+    names = ["Сколько дают"] + [f'{pv["name"]} по моделям' for pv in cfg["providers"]]
     caps = ["API-эквивалент — сколько стоила бы та же работа по ценам API. " + " ".join(foot)] + [
         "Ответов агента в месяц: один ответ — один ход агента в Claude Code или Codex, в обычном чате сообщений получится больше. "
         "Числа пересчитываются каждый день по текущим ценам моделей."] * len(tables)
     panels = [summary] + tables
-    tabs = "".join(f'<button type="button" data-p="{i}"{" class=on" if i == 0 else ""}>{n}</button>' for i, n in enumerate(names))
-    body = "".join(f'<div class="pl-panel"{" hidden" if i else ""}>{p}<p class="src">{caps[i]}</p></div>' for i, p in enumerate(panels))
-    return (h3_sub("Сколько даёт подписка", f"Оценки по замерам пользователей на {cfg['as_of']}: компании не публикуют лимиты в долларах.")
-            + f'<div class="pl-box"><div class="pl-tabs">{tabs}</div>{body}</div>')
+    caps[0] += f" Оценки по замерам пользователей на {cfg['as_of']}: компании не публикуют лимиты в долларах."
+    tabs = "".join(f'<button type="button">{n}</button>' for n in names)
+    body = "".join(f'<div class="pl-panel" hidden>{p}<p class="src">{caps[i]}</p></div>' for i, p in enumerate(panels))
+    return tabs, body
 
 
 RT = [("score", "Интеллект", [("score", "")],
@@ -234,7 +234,8 @@ os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
 body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {}), "BASE": BASE})["BODY"]
 count, bars, legend, date = chart(data)
-body = body.replace("{RATING_TABS}", rating_tabs(data)).replace("{SUBS}", subscriptions(data)).replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
+sub_tabs, sub_panels = subscriptions(data)
+body = body.replace("{RATING_TABS}", rating_tabs(data)).replace("{SUBS_TABS}", sub_tabs).replace("{SUBS_PANELS}", sub_panels).replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
 body = body.replace("{VERSION}", version, 1)

@@ -360,7 +360,7 @@ function initPlans(){
   box.querySelector(".pl-tabs").addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button") : null;
     if(!b) return;
-    var btns = box.querySelectorAll(".pl-tabs button"), panels = box.querySelectorAll(".pl-panel"), k = +b.getAttribute("data-p");
+    var btns = box.querySelectorAll(".pl-tabs button"), panels = box.querySelectorAll(".pl-panel"), k = Array.prototype.indexOf.call(btns, b);
     for(var i=0;i<btns.length;i++){ btns[i].classList.toggle("on", i===k); panels[i].hidden = i!==k; }
   });
 }

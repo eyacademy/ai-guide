@@ -109,7 +109,7 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .btn:hover{transform:translateY(-2px)}
 
 @media (max-width:900px){
-#eyai .vendors,#eyai .explain,}
+#eyai .vendors,#eyai .explain{grid-template-columns:1fr}}
 @media (max-width:600px){
 #eyai .w{padding:0 16px}
 #eyai section{padding-top:56px}
@@ -279,3 +279,7 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .pl-sum .pl-h th{font-size:11px;letter-spacing:0}
 #eyai .pl-x{min-width:0;padding:2px 6px}
 }
+#eyai .pl-box .box{background:var(--bg);border:0;padding:18px 20px}
+#eyai .pl-box .box h3{font-size:17px}
+#eyai .pl-box .box p{font-size:14.5px}
+#eyai .pl-box .grid .card{min-height:0}

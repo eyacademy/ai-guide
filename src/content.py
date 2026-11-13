@@ -106,15 +106,14 @@ v += vendor("Microsoft", "Copilot",
              ("Личный Copilot", "https://copilot.microsoft.com", "copilot.microsoft.com")])
 v += "</div>"
 llm = v
-llm += h3("Личная или бизнес-подписка", "Главная разница в том, что происходит с вашими данными.")
-llm += ('<div class="explain">'
+# Subscriptions: kinds, value, per-model limits and privacy in one tabbed block.
+kinds = ('<div class="explain">'
         '<div class="box"><h3>Личная подписка</h3><p>Free, Plus, Pro и аналоги. ChatGPT, Claude и Gemini по умолчанию могут использовать вашу переписку для обучения моделей. Отключить можно в настройках, но это делает каждый сотрудник сам, и компания этого не видит.</p>'
         '<p>Нет администратора, общего счёта и контроля доступа: если сотрудник уходит, его чаты и файлы уходят вместе с его аккаунтом.</p></div>'
         '<div class="box"><h3>Бизнес-подписка</h3><p>ChatGPT Business, Claude Team, Google Workspace, Microsoft 365 Copilot. Переписка и файлы не используются для обучения моделей, так же как при работе через API.</p>'
         '<p>Администратор управляет пользователями и сроком хранения данных, вход через корпоративный аккаунт (SSO), один счёт на компанию. Подключить можно от 2 пользователей.</p></div>'
         '</div>'
-        '<p class="note"><b>Для работы с рабочими документами покупайте бизнес-подписку.</b> Она стоит почти столько же, сколько личная, но данные компании остаются под её контролем.</p>')
-llm += ('<div class="tbl-wrap" style="margin-top:16px"><table class="tbl"><thead><tr><th>Сервис</th><th>Личная подписка</th><th>Обучение на данных</th><th>Бизнес-подписка</th><th>Обучение на данных</th></tr></thead><tbody>'
+         + '<div class="tbl-wrap" style="margin-top:12px"><table class="tbl"><thead><tr><th>Сервис</th><th>Личная подписка</th><th>Обучение на данных</th><th>Бизнес-подписка</th><th>Обучение на данных</th></tr></thead><tbody>'
         "<tr><td>ChatGPT</td><td>Free, Go $8, Plus $20, Pro от $100</td><td>Да, можно отключить</td><td>Business $20–25</td><td>Нет</td></tr>"
         "<tr><td>Claude</td><td>Free, Pro $20, Max $100–200</td><td>По выбору пользователя, при согласии хранение до 5 лет</td><td>Team $20–25</td><td>Нет</td></tr>"
         "<tr><td>Gemini</td><td>Free, AI Plus $5, AI Pro $20, Ultra от $100</td><td>Да, можно отключить</td><td>Google Workspace от $7, Gemini включён</td><td>Нет</td></tr>"
@@ -122,13 +121,16 @@ llm += ('<div class="tbl-wrap" style="margin-top:16px"><table class="tbl"><thead
         "<tr><td>API</td><td colspan=\"2\">Оплата за объём запросов, без подписки</td><td colspan=\"2\">Не обучают по умолчанию. Исключение: бесплатный уровень Gemini API</td></tr>"
         "</tbody></table></div>"
         '<p class="src">Цены за пользователя в месяц в долларах США. У бизнес-тарифов меньшая цена при оплате за год.</p>')
-llm += "{SUBS}"
-llm += h3("Как отключить обучение в личной подписке")
-llm += '<div class="grid">' + "".join(f'<div class="card"><b>{a}</b><p>{b}</p></div>' for a, b in [
+privacy = '<div class="grid">' + "".join(f'<div class="card"><b>{logo(a)}{a}</b><p>{t}</p></div>' for a, t in [
     ("ChatGPT", "Settings → Data controls → выключить «Improve the model for everyone». Временные чаты не используются для обучения."),
     ("Claude", "Settings → Privacy → выключить «Help improve Claude». Чаты в режиме инкогнито не используются для обучения."),
     ("Gemini", "Activity → выключить «Keep Activity». Временные чаты не используются для обучения."),
 ]) + "</div>"
+llm += h3("Подписки", "Какие бывают, сколько стоят и сколько работы дают. Для рабочих документов берите бизнес-подписку: "
+          "она стоит почти как личная, а данные компании остаются под её контролем.")
+llm += ('<div class="pl-box"><div class="pl-tabs"><button type="button" class="on">Какие бывают</button>{SUBS_TABS}'
+        '<button type="button">Как отключить обучение</button></div>'
+        f'<div class="pl-panel">{kinds}</div>' + "{SUBS_PANELS}" + f'<div class="pl-panel" hidden>{privacy}</div></div>')
 llm += h3("Другие чат-боты")
 llm += grid([
     ("DeepSeek", f"Сильная китайская модель {model('DeepSeek', 'DeepSeek V4.1 Flash')}. Бесплатный чат, веса можно скачать и запустить у себя.", "https://chat.deepseek.com", "открытая"),
