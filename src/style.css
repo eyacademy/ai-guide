@@ -328,3 +328,14 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .rt-more:hover{border-color:var(--ink)}
 }
 #eyai .rt-more[hidden]{display:none!important}
+#eyai .toc .toc-cta{margin-left:auto;background:var(--ink);border-color:var(--ink);color:#fff;font-weight:700}
+#eyai .toc .toc-cta:hover{background:var(--y);border-color:var(--y);color:var(--ink)}
+@media (max-width:900px){#eyai .toc .toc-cta{margin-left:8px}}
+#eyai .rt-dl{margin-left:auto}
+#eyai .rt .rt-dl{font-size:13px;background:var(--bg)}
+#eyai .rt .rt-dl:disabled{opacity:.6;cursor:default}
+@media (max-width:600px){#eyai .rt-dl{margin-left:0}}
+#eyai .rt-dl{margin-left:auto}
+#eyai .rt .rt-dl{font-size:13px;background:var(--bg)}
+#eyai .rt .rt-dl:disabled{opacity:.6;cursor:default}
+@media (max-width:600px){#eyai .rt-dl{margin-left:0}}

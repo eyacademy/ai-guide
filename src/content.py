@@ -140,7 +140,9 @@ NAV = [("rating", "Рейтинг"), ("llm", "Чат-боты"), ("agents", "И�
        ("media", "Креативы"), ("tools", "Полезные сервисы"), ("company", "ИИ в компании"), ("detect", "Детекторы")]
 
 out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' +
-       "".join(f'<a href="#eyai-{i}"><span>{n}</span>{t}</a>' for n, (i, t) in enumerate(NAV, 1)) + "</div></div>",
+       "".join(f'<a href="#eyai-{i}"><span>{n}</span>{t}</a>' for n, (i, t) in enumerate(NAV, 1))
+       + '<a class="toc-cta" href="https://eyacademyeurasia.com/ai/chatgpt?utm_source=ai-guide" target="_blank" rel="noopener">Тренинг по ИИ &rarr;</a>'
+       + "</div></div>",
        '<div class="w">']
 
 # 2. rating

@@ -297,6 +297,99 @@ function colorFrom(colors, creator){
   return "#9a9aa6";
 }
 
+/* saving a chart as a picture, with the sources named under it */
+var CREDIT = ["Источник: Artificial Analysis · artificialanalysis.ai",
+              "Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide"];
+
+function dataUri(url){
+  return fetch(url, {cache:"force-cache"}).then(function(r){ return r.blob(); }).then(function(b){
+    return new Promise(function(ok){ var f = new FileReader(); f.onload = function(){ ok(f.result); }; f.readAsDataURL(b); });
+  }).catch(function(){ return null; });
+}
+
+function svgText(parent, x, y, text, opt){
+  var t = el("text", {x:x, y:y, "font-family":"Arial, sans-serif", "font-size":opt.size || 13,
+    fill:opt.fill || "#2e2e38", "text-anchor":opt.anchor || "start", "font-weight":opt.bold ? "700" : "400"}, parent);
+  if(opt.rotate) t.setAttribute("transform", "rotate("+opt.rotate+" "+x+" "+y+")");
+  t.textContent = text;
+  return t;
+}
+
+// The rating is drawn as HTML on the page, so the picture is built from the same numbers.
+function ratingSvg(list, caption, pct, colors){
+  var W = Math.max(1100, 60 + list.length * 46), H = 620, M = {l:54, r:24, t:92, b:190};
+  var ih = H - M.t - M.b, iw = W - M.l - M.r, slot = iw / list.length;
+  var vals = list.map(function(m){ return m.v; });
+  var pos = Math.max(0, Math.max.apply(0, vals)), neg = Math.max(0, -Math.min.apply(0, vals));
+  var pad = neg ? (pos + neg) * 0.09 : 0, max = (pos + neg + pad) || 1, zero = M.t + ih * pos / max;
+  var svg = el("svg", {xmlns:NS, width:W, height:H, viewBox:"0 0 "+W+" "+H});
+  el("rect", {x:0, y:0, width:W, height:H, fill:"#fff"}, svg);
+  svgText(svg, M.l, 44, "Рейтинг моделей", {size:26, bold:true});
+  svgText(svg, M.l, 70, caption, {size:14, fill:"#747480"});
+  el("line", {x1:M.l - 10, x2:W - M.r, y1:zero, y2:zero, stroke:"#e1e1e6"}, svg);
+  list.forEach(function(m, i){
+    var cx = M.l + slot * (i + 0.5), bw = Math.min(30, slot * 0.66);
+    var h = Math.max(2, Math.abs(m.v) / max * ih), top = m.v < 0 ? zero : zero - h;
+    el("rect", {x:cx - bw / 2, y:top, width:bw, height:h, fill:m.c}, svg);
+    var r = Math.round(m.v), label = (r < 0 ? "−" : "") + Math.abs(r) + (pct ? "%" : "");
+    svgText(svg, cx, m.v < 0 ? top + h + 15 : top - 6, label, {size:12, bold:true, anchor:"middle"});
+    if(m.file) el("image", {href:BASE + "logos/" + m.file, x:cx - 10, y:M.t + ih + 10, width:20, height:20}, svg);
+    svgText(svg, cx + 4, M.t + ih + 42, m.name, {size:12, anchor:"end", rotate:-45});
+  });
+  CREDIT.forEach(function(line, i){ svgText(svg, M.l, H - 28 + i * 16, line, {size:12, fill:"#747480"}); });
+  return svg;
+}
+
+function framed(svg){
+  // Put the credit under a copy of a chart that is already drawn as SVG.
+  var box = svg.viewBox.baseVal, w = box && box.width || svg.clientWidth, h = box && box.height || svg.clientHeight;
+  var out = el("svg", {xmlns:NS, width:Math.round(w) + 48, height:Math.round(h) + 120, viewBox:"0 0 "+(w + 48)+" "+(h + 120)});
+  el("rect", {x:0, y:0, width:w + 48, height:h + 120, fill:"#fff"}, out);
+  var st = el("style", {}, out);
+  st.textContent = "text{font-family:Arial,sans-serif}.gl{stroke:#e1e1e6}.ax{fill:#747480;font-size:12px}" +
+    ".ef{fill:#747480;font-size:10px}.lb{fill:#747480;font-size:12px}.lb.on{fill:#2e2e38;font-weight:700}" +
+    ".vl{fill:#2e2e38;font-size:11px;font-weight:700}.gn{font-size:12px;font-weight:700}";
+  var copy = svg.cloneNode(true);
+  copy.setAttribute("x", 24); copy.setAttribute("y", 52);
+  copy.setAttribute("width", w); copy.setAttribute("height", h);
+  out.appendChild(copy);
+  svgText(out, 24, 34, "Какая модель выгоднее", {size:20, bold:true});
+  CREDIT.forEach(function(line, i){ svgText(out, 24, h + 82 + i * 16, line, {size:12, fill:"#747480"}); });
+  return out;
+}
+
+function savePng(svg, name){
+  var imgs = Array.prototype.slice.call(svg.querySelectorAll("image"));
+  return Promise.all(imgs.map(function(el){
+    var href = el.getAttribute("href") || el.getAttribute("xlink:href");
+    return href && href.indexOf("data:") !== 0 ? dataUri(href).then(function(d){
+      if(d) el.setAttribute("href", d); else el.remove();
+    }) : null;
+  })).then(function(){
+    var w = +svg.getAttribute("width"), h = +svg.getAttribute("height"), scale = 2;
+    var src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+    return new Promise(function(ok, no){
+      var im = new Image();
+      im.onload = function(){
+        var c = document.createElement("canvas");
+        c.width = w * scale; c.height = h * scale;
+        var g = c.getContext("2d");
+        g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+        g.drawImage(im, 0, 0, c.width, c.height);
+        c.toBlob(function(b){
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(b); a.download = name;
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+          ok();
+        }, "image/png");
+      };
+      im.onerror = no;
+      im.src = src;
+    });
+  });
+}
+
 /* rating tabs: intelligence, knowledge reliability, fields */
 var RT_CAP = {score:"Топ-30 моделей, баллы из 100", omni:"Итоговый балл от −100 до 100", acc:"Доля верных ответов",
   hall:"Доля выдуманных ответов, меньше — лучше", fin:"Баллы из 100", ops:"Баллы из 100", law:"Баллы из 100",
@@ -313,7 +406,7 @@ function initRating(){
   var dateEl = chart.querySelector(".rt-date"), dateText = dateEl ? dateEl.textContent : "";
   var note = rt.querySelector(".rt-note"), colors = {};
   try { colors = JSON.parse(rt.getAttribute("data-colors")); } catch(e){}
-  var tab = "score", metric = "score", tabNote = note.textContent;
+  var tab = "score", metric = "score", tabNote = note.textContent, shown = null;
 
   function render(d){
     var pct = metric==="acc" || metric==="hall", asc = metric==="hall";
@@ -321,11 +414,13 @@ function initRating(){
       : (d.bench||[]).filter(function(m){ return m[metric]!=null; }).map(function(m){ return {name:m.name, creator:m.creator, effort:m.effort, v:m[metric]}; }))
       .sort(function(a,b){ return asc ? a.v-b.v : b.v-a.v; }).slice(0, 30);
     // Zero line sits above the bottom when some values are negative; bars below it hang down.
+    shown = list;
     var vals = list.map(function(m){ return m.v; }), pos = Math.max(0, Math.max.apply(0, vals)), neg = Math.max(0, -Math.min.apply(0, vals));
     var pad = neg ? (pos + neg)*0.09 : 0, max = (pos + neg + pad) || 1, seen = {}, leg = [];
     ol.style.setProperty("--z", ((neg + pad)/max*100).toFixed(2)+"%");
     ol.innerHTML = list.map(function(m, i){
       var c = colorFrom(colors, m.creator), f = logoFile(m.creator), w = Math.max(m.v ? 2 : 0.6, Math.abs(m.v)/max*100).toFixed(2);
+      m.c = c; m.file = f;
       var name = esc(m.name + (m.effort ? " ("+m.effort+")" : "")), r = Math.round(m.v), val = (r<0 ? "−" : "") + Math.abs(r) + (pct ? "%" : "");
       if(!seen[m.creator]){ seen[m.creator] = 1; leg.push('<span><i style="background:'+c+'"></i>'+esc(m.creator)+'</span>'); }
       var lo = f ? '<img src="'+BASE+'logos/'+f+'" width="20" height="20" alt="">' : '<b class="lgl" style="--c:'+c+'">'+esc(m.creator.charAt(0).toUpperCase())+'</b>';
@@ -348,6 +443,15 @@ function initRating(){
   rt.addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button") : null;
     if(!b) return;
+    if(b.classList.contains("rt-dl")){
+      var busy = b.textContent;
+      b.textContent = "Готовим…"; b.disabled = true;
+      var plot = value && !value.hidden ? value.querySelector(".cmp-plot svg") : null;
+      var svg = plot ? framed(plot) : (shown ? ratingSvg(shown, cap.textContent, metric === "acc" || metric === "hall", colors) : null);
+      var done = function(){ b.textContent = busy; b.disabled = false; };
+      if(svg) savePng(svg, "ey-ai-guide-" + (plot ? "value" : metric) + ".png").then(done, done); else done();
+      return;
+    }
     var g = b.parentNode;
     for(var i=0;i<g.children.length;i++) g.children[i].classList.toggle("on", g.children[i]===b);
     if(b.getAttribute("data-rt")){
@@ -358,6 +462,7 @@ function initRating(){
     if(b.getAttribute("data-m")) metric = b.getAttribute("data-m");
     show();
   });
+  show();   // the page ships the bars as HTML; this also hands the numbers to the picture export
 }
 
 /* phones: the rating list starts collapsed */

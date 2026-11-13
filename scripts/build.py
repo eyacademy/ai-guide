@@ -236,7 +236,7 @@ def rating_tabs(data, value=False):
     out = [f'<div class="rt" data-colors="{colors}"><div class="rt-tabs">']
     for n, (i, t, subs, note) in enumerate(tabs):
         out.append(f'<button type="button" data-rt="{i}" data-note="{html.escape(note)}"{" class=on" if n == 0 else ""}>{t}</button>')
-    out.append("</div>")
+    out.append('<button type="button" class="rt-dl" title="Скачать картинку со ссылкой на источник">Скачать картинку</button></div>')
     for i, t, subs, note in tabs:
         if len(subs) > 1:
             out.append(f'<div class="rt-subs" data-for="{i}" hidden>' + "".join(
@@ -247,6 +247,22 @@ def rating_tabs(data, value=False):
 
 def h3_sub(t, cap):
     return f'<h3>{t}</h3><p class="cap">{cap}</p>'
+
+
+UTM = "utm_source=ey-academy"
+# App stores and our own pages keep their links clean.
+NO_UTM = ("eyacademyeurasia.com", "eyacademy.github.io", "play.google.com", "apps.apple.com")
+
+
+def tag_links(body):
+    def one(m):
+        url = m.group(1)
+        if "utm_source=" in url or any(d in url for d in NO_UTM):
+            return m.group(0)
+        head, _, frag = url.partition("#")
+        head += ("&" if "?" in head else "?") + UTM
+        return f'href="{head}' + (f"#{frag}" if frag else "") + '"'
+    return re.sub(r'href="(https?://[^"]+)"', one, body)
 
 
 data = load_data()
@@ -268,6 +284,7 @@ sub_tabs, sub_panels = subscriptions(data)
 cmp_html = compare(data)
 body = body.replace("{RATING_TABS}", rating_tabs(data, bool(cmp_html))).replace("{SUBS_TABS}", sub_tabs).replace("{SUBS_PANELS}", sub_panels).replace("{COMPARE}", cmp_html).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
+body = tag_links(body)
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
 body = body.replace("{VERSION}", version, 1)
 style = f'<style id="eyai-style">\n{css}</style>\n'
