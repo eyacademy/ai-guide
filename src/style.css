@@ -183,6 +183,8 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .cmp-bar .cmp-subs{margin-top:0}
 #eyai .cmp-ctl{display:flex;align-items:center;gap:14px;margin-left:auto;font-size:13px}
 #eyai .cmp-ctl[hidden]{display:none}
+#eyai .cmp-ctl{flex-wrap:wrap;justify-content:flex-end;row-gap:8px}
+#eyai .cmp-seg[hidden],#eyai .cmp-subs button[hidden]{display:none}
 #eyai .cmp-seg{display:inline-flex}
 #eyai .cmp .cmp-seg button{font-size:12px;padding:4px 10px;background:var(--bg)}
 #eyai .cmp .cmp-seg button + button{border-left:0}

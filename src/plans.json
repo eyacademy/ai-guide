@@ -177,5 +177,72 @@
       "logo": "openai.svg",
       "creator": "OpenAI"
     }
-  ]
+  ],
+  "per_task": {
+    "_help": [
+      "Цена задачи по подписке на графике «Интеллект и цена» = цена задачи по API × доля, которую составляет тариф от API-эквивалента.",
+      "Для Claude и ChatGPT доля считается из providers выше: цена тарифа ÷ (budget × x × share). Тариф берётся первый, который стоит не меньше tiers.",
+      "Для остальных разработчиков доля задана вручную в others (собственные тарифы разработчиков, оценка на as_of). Модели без данных остаются по цене API."
+    ],
+    "tiers": {
+      "basic": 20,
+      "top": 100
+    },
+    "others": [
+      {
+        "model": "^Gemini 4\\b",
+        "plan": "Google AI Pro",
+        "price": 19.99,
+        "ratio": 0.713
+      },
+      {
+        "model": "^Grok 4\\.6",
+        "plan": "SuperGrok Heavy",
+        "price": 300,
+        "ratio": 0.103
+      },
+      {
+        "model": "^Grok 4\\.7",
+        "plan": "SuperGrok Heavy",
+        "price": 300,
+        "ratio": 0.0928
+      },
+      {
+        "model": "^Kimi K3",
+        "plan": "Kimi Pro",
+        "price": 39,
+        "ratio": 0.0909
+      },
+      {
+        "model": "^Mistral (Large|Medium|Small)",
+        "plan": "Mistral Vibe Pro",
+        "price": 14.99,
+        "ratio": 0.0476
+      },
+      {
+        "model": "^MiniMax-M3$",
+        "plan": "MiniMax Token Plan Plus",
+        "price": 7.23,
+        "ratio": 0.168
+      },
+      {
+        "model": "^MiMo-V2\\.6-Pro",
+        "plan": "MiMo Token Plan Max",
+        "price": 100,
+        "ratio": 0.842
+      },
+      {
+        "model": "^Tencent Hy4",
+        "plan": "Tencent Token Plan Standard",
+        "price": 17,
+        "ratio": 0.287
+      },
+      {
+        "model": "^GLM-5\\.3$",
+        "plan": "GLM Coding Pro",
+        "price": 79,
+        "ratio": 0.104
+      }
+    ]
+  }
 }

@@ -53,6 +53,8 @@ var NS = "http://www.w3.org/2000/svg";
 var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:" млн", B:" млрд", level:"уровень ",
   score:"Интеллект", cost:"Цена задачи", cost_total:"Общая стоимость", time:"Время на задачу",
   tokens:"Токены на задачу", tokens_total:"Всего токенов", axisY:"↑ Интеллект",
+  speed:"Скорость вывода", ttft:"Задержка", tps:" ток/с", subCost:"Цена задачи по подписке",
+  plan:"Тариф", apiPrice:"нет данных о подписке, по цене API", notInPlan:"не входит в тариф, по цене API", nearFree:"≈ 0",
   pick:"Выберите модели в списке справа.", noData:"Не удалось загрузить данные. Обновите страницу.",
   capScore:"Топ-{n} моделей, баллы из 100", capOmni:"Итоговый балл от −100 до 100", capAcc:"Доля верных ответов",
   capHall:"Доля выдуманных ответов, меньше — лучше", capField:"Баллы из 100",
@@ -84,6 +86,8 @@ function num(v, d){ return v.toLocaleString(S.locale, {maximumFractionDigits: d}
 function fmt(k, v, short){
   if(v==null) return "—";
   if(k==="score") return num(v, 1);
+  if(k==="speed") return num(v, 0)+S.tps;
+  if(k==="ttft") return num(v, v<10 ? 1 : 0)+S.sec;
   if(k==="cost"||k==="cost_total") return "$" + num(v, v<1 ? (short?2:3) : v<100 ? (short?1:2) : 0);
   if(k==="time"){
     if(v<60) return Math.round(v)+S.sec;
@@ -139,9 +143,14 @@ function frontier(rows, k){
 }
 
 function tipHtml(m, k){
-  var keys = ["score","cost","cost_total","time","tokens","tokens_total"];
+  var keys = ["score","cost","cost_total","time","tokens","tokens_total","speed","ttft"];
   var h = "<b>"+esc(m.family)+"</b><small>"+esc(m.creator)+(m.effort ? " · "+S.level+esc(m.effort) : "")+"</small>";
-  keys.forEach(function(x){ if(m[x]!=null) h += '<span'+(x===k?' class="on"':'')+'><i>'+LABEL[x]+'</i>'+fmt(x,m[x])+'</span>'; });
+  keys.forEach(function(x){
+    if(m[x]==null || (m.sub && x==="cost_total")) return;   // the run total is an API figure
+    var label = x==="cost" && m.sub && !m.api ? S.subCost : LABEL[x], v = x==="cost" && m.sub && !m[x] ? S.nearFree : fmt(x,m[x]);
+    h += '<span'+(x===k?' class="on"':'')+'><i>'+label+'</i>'+v+'</span>';
+    if(x==="cost" && m.sub) h += '<span><i>'+S.plan+'</i>'+(m.plan ? esc(m.plan)+(m.api ? " · "+S.notInPlan : "") : S.apiPrice)+'</span>';
+  });
   return h;
 }
 
@@ -162,19 +171,22 @@ function scatter(plot, rows, k, opt){
   if(!rows.length){ empty(plot, S.pick); return []; }
   var W = plot.clientWidth, H = Math.round(Math.max(300, Math.min(480, W*0.62)));
   var M = {l:34, r:12, t:12, b:34}, iw = W-M.l-M.r, ih = H-M.t-M.b;
-  var xs = rows.map(function(m){ return m[k]; }), ys = rows.map(function(m){ return m.score; });
+  var pos = rows.map(function(m){ return m[k]; }).filter(function(v){ return v>0; });
+  var zero = opt.log && pos.length<rows.length ? (pos.length ? Math.min.apply(0,pos) : 1)/4 : 0;
+  var xv = function(m){ return m[k]>0 || !opt.log ? m[k] : zero; }, lab = opt.label || LABEL[k];
+  var xs = rows.map(xv), ys = rows.map(function(m){ return m.score; });
   var y0 = Math.max(0, Math.floor((Math.min.apply(0,ys)-4)/10)*10), y1 = Math.ceil((Math.max.apply(0,ys)+3)/10)*10;
   var Y = function(v){ return M.t + (1-(v-y0)/(y1-y0))*ih; }, X, xt = [];
   if(opt.log){
     var x0 = Math.log10(Math.min.apply(0,xs)/1.35), x1 = Math.log10(Math.max.apply(0,xs)*1.35);
     X = function(v){ return M.l + (Math.log10(v)-x0)/(x1-x0)*iw; };
-    xt = logTicks(Math.pow(10,x0), Math.pow(10,x1), k);
+    xt = logTicks(zero ? zero*2 : Math.pow(10,x0), Math.pow(10,x1), k);
   } else {
     var xmax = Math.max.apply(0,xs), st = niceStep(xmax), xtop = Math.ceil(xmax*1.04/st)*st;
     X = function(v){ return M.l + v/xtop*iw; };
     for(var t0=0; t0<=xtop+st/2; t0+=st) xt.push(t0);
   }
-  var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":S.score+" / "+LABEL[k]});
+  var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":S.score+" / "+lab});
   for(var v=y0; v<=y1; v+=10){
     el("line", {x1:M.l, x2:W-M.r, y1:Y(v), y2:Y(v), "class":"gl", "stroke-dasharray":"2 4"}, svg);
     el("text", {x:M.l-8, y:Y(v)+4, "text-anchor":"end", "class":"ax"}, svg).textContent = v;
@@ -183,23 +195,29 @@ function scatter(plot, rows, k, opt){
     el("line", {x1:X(t), x2:X(t), y1:M.t, y2:H-M.b, "class":"gl", "stroke-dasharray":"2 4"}, svg);
     el("text", {x:X(t), y:H-M.b+18, "text-anchor":"middle", "class":"ax"}, svg).textContent = fmt(k,t,true);
   });
-  el("text", {x:W-M.r, y:H-M.b-6, "text-anchor":"end", "class":"ax"}, svg).textContent = LABEL[k]+" →";
+  if(zero){
+    el("line", {x1:X(zero), x2:X(zero), y1:M.t, y2:H-M.b, "class":"gl", "stroke-dasharray":"2 4"}, svg);
+    el("text", {x:X(zero), y:H-M.b+18, "text-anchor":"middle", "class":"ax"}, svg).textContent = S.nearFree;
+  }
+  el("text", {x:W-M.r, y:H-M.b-6, "text-anchor":"end", "class":"ax"}, svg).textContent = lab+" →";
   el("text", {x:M.l+6, y:M.t+14, "class":"ax"}, svg).textContent = S.axisY;
   // Reasoning levels of one model share a thin line in its colour.
   var fams = {};
   rows.forEach(function(m){ (fams[m.family] = fams[m.family] || []).push(m); });
   for(var f in fams) if(fams[f].length>1){
     var line = fams[f].slice().sort(function(a,b){ return a.eo-b.eo || a[k]-b[k]; });
-    el("polyline", {points:line.map(function(m){ return X(m[k])+","+Y(m.score); }).join(" "), fill:"none", stroke:line[0].c, "stroke-width":1.2, "stroke-opacity":.5}, svg);
+    el("polyline", {points:line.map(function(m){ return X(xv(m))+","+Y(m.score); }).join(" "), fill:"none", stroke:line[0].c, "stroke-width":1.2, "stroke-opacity":.5}, svg);
   }
   var best = opt.pareto ? frontier(rows, k) : [];
-  if(best.length>1) el("polyline", {points:best.map(function(m){ return X(m[k])+","+Y(m.score); }).join(" "), fill:"none", stroke:"#2e2e38", "stroke-width":1.5, "stroke-linejoin":"round", "stroke-dasharray":"5 4"}, svg);
-  var pts = [], axw = LABEL[k].length*6.3+16, boxes = [{x:W-M.r-axw, y:H-M.b-20, w:axw, h:18}, {x:M.l, y:M.t, w:90, h:18}];
+  if(best.length>1) el("polyline", {points:best.map(function(m){ return X(xv(m))+","+Y(m.score); }).join(" "), fill:"none", stroke:"#2e2e38", "stroke-width":1.5, "stroke-linejoin":"round", "stroke-dasharray":"5 4"}, svg);
+  var pts = [], axw = lab.length*6.3+16, boxes = [{x:W-M.r-axw, y:H-M.b-20, w:axw, h:18}, {x:M.l, y:M.t, w:90, h:18}];
   var labels = el("g", {}, svg), dots = el("g", {}, svg);
   rows.forEach(function(m){
-    var on = best.indexOf(m)>=0, p = {m:m, on:on, x:X(m[k]), y:Y(m.score)};
+    var on = best.indexOf(m)>=0, p = {m:m, on:on, x:X(xv(m)), y:Y(m.score)};
     p.r = on ? 6.5 : 5;
-    p.c = el("circle", {cx:p.x, cy:p.y, r:p.r, fill:m.c, stroke:"#fff", "stroke-width":1.5, "fill-opacity":on?1:0.5, "class":"pt"}, dots);
+    p.c = m.api   // no subscription data: drawn hollow, at the API price
+      ? el("circle", {cx:p.x, cy:p.y, r:p.r-0.75, fill:"#fff", stroke:m.c, "stroke-width":1.5, "class":"pt"}, dots)
+      : el("circle", {cx:p.x, cy:p.y, r:p.r, fill:m.c, stroke:"#fff", "stroke-width":1.5, "fill-opacity":on?1:0.5, "class":"pt"}, dots);
     pts.push(p);
   });
   // One label per model, at its smartest level; best models first, skip overlaps.
@@ -256,7 +274,7 @@ function columns(plot, rows, k){
   var groups = Object.keys(byF).map(function(f){
     var r = byF[f].sort(function(a,b){ return a.eo-b.eo || a[k]-b[k]; });
     return {f:f, rows:r, c:r[0].c, max:Math.max.apply(0, r.map(function(x){ return x[k]; }))};
-  }).sort(function(a,b){ return a.max-b.max; });
+  }).sort(function(a,b){ return k==="speed" ? b.max-a.max : a.max-b.max; });
   var W = plot.clientWidth, narrow = W<600, n = rows.length, G = groups.length;
   var gap = narrow ? 8 : 18, M = {l:narrow?40:54, r:6, t:26};
   var unit = (W-M.l-M.r-gap*(G-1))/n, bw = Math.max(2, unit*0.8);
@@ -503,8 +521,6 @@ function initRating(){
         '<span class="n"><span>'+name+'</span><small>'+esc(m.creator)+'</small></span><span class="t"><span class="f'+(w<14 || m.v<0 ? " sm" : "")+'" style="--c:'+c+';--w:'+w+'%"><em>'+val+'</em></span></span></li>';
     }).join("");
     legend.innerHTML = leg.join("");
-    var col = ol.querySelector(".bar .t");          // the scale must end exactly where the columns do
-    if(grid && col && col.offsetHeight) grid.style.height = col.getBoundingClientRect().height + "px";
     cap.textContent = rtCap(metric, list.length);
     note.textContent = rtNote(metric) || tabNote;
     if(dateEl) dateEl.textContent = tab==="know" ? (S.knowledgeNote || d.knowledge_note || dateText) : dateText;
@@ -596,7 +612,23 @@ function setupCompare(box, d){
   var plot = box.querySelector(".cmp-plot"), note = box.querySelector(".cmp-note"), subs = box.querySelector(".cmp-subs"), bestEl = box.querySelector(".cmp-best");
   var ctl = box.querySelector(".cmp-ctl"), par = box.querySelector(".cmp-par input");
   var list = box.querySelector(".cmp-list"), q = box.querySelector(".cmp-q"), count = box.querySelector(".cmp-count"), eff = box.querySelector(".cmp-eff input");
-  var tab = box.querySelector(".cmp-tabs .on").getAttribute("data-tab"), first = subs.querySelector("button"), sub = first ? first.getAttribute("data-sub") : "cost";
+  var tab = box.querySelector(".cmp-tabs .on").getAttribute("data-tab"), subOf = {};
+  [].forEach.call(subs.querySelectorAll("button.on"), function(b){ subOf[b.getAttribute("data-for")] = b.getAttribute("data-sub"); });
+  var price = "api", tier = "basic", plans = d.subs || {}, tabNote = note.textContent;
+  var priceEl = box.querySelector(".cmp-price"), tierEl = box.querySelector(".cmp-tier");
+
+  // Cost of a task inside a subscription: API cost × the plan's share of the API price.
+  function priced(rows){
+    if(tab!=="cost" || price!=="sub") return rows;
+    return rows.map(function(r){
+      var p = (plans[r.family] || {})[tier], o = {};
+      for(var x in r) o[x] = r[x];
+      o.sub = true;
+      if(p && p[0]!=null){ o.cost = r.cost*p[0]; o.plan = p[1]; }
+      else { o.api = true; o.plan = p ? p[1] : ""; }
+      return o;
+    });
+  }
 
   function visible(){ return rows.filter(function(r){ return sel[r.family] && (allEff || fams[r.family].best===r); }); }
   function renderList(){
@@ -615,12 +647,17 @@ function setupCompare(box, d){
     count.textContent = Object.keys(sel).length+S.of+Object.keys(fams).length;
   }
   function draw(){
-    subs.hidden = tab!=="tokens";
-    if(ctl) ctl.hidden = tab==="tokens";
+    var bars = !!subOf[tab], sub = subOf[tab];
+    [].forEach.call(subs.children, function(b){ b.hidden = b.getAttribute("data-for")!==tab; });
+    subs.hidden = !bars;
+    if(ctl) ctl.hidden = bars;
+    if(priceEl) priceEl.hidden = tab!=="cost";
+    if(tierEl) tierEl.hidden = tab!=="cost" || price!=="sub";
+    note.textContent = tab==="cost" && price==="sub" ? note.getAttribute("data-sub-note") : tabNote;
     bestEl.innerHTML = "";
-    var vis = visible();
-    if(tab==="tokens") return columns(plot, vis, sub);
-    var best = scatter(plot, vis, tab, {log:logX, pareto:pareto});
+    var vis = priced(visible());
+    if(bars) return columns(plot, vis, sub);
+    var best = scatter(plot, vis, tab, {log:logX, pareto:pareto, label: tab==="cost" && price==="sub" ? S.subCost : null});
     if(best.length) bestEl.innerHTML = (tab==="cost" ? S.bestCost : S.bestTime) +
       best.filter(function(m, i){ return best.map(function(x){ return x.family; }).indexOf(m.family)===i; })
         .map(function(m){ return "<b>"+esc(m.family)+"</b>"; }).join(" → ") + S.bestHint;
@@ -634,9 +671,15 @@ function setupCompare(box, d){
       renderList(); return draw();
     }
     var group = b.parentNode;
-    for(var i=0;i<group.children.length;i++) group.children[i].classList.toggle("on", group.children[i]===b);
-    if(b.getAttribute("data-tab")){ tab = b.getAttribute("data-tab"); note.textContent = b.getAttribute("data-note"); }
-    if(b.getAttribute("data-sub")) sub = b.getAttribute("data-sub");
+    var fr = b.getAttribute("data-for");   // sub-tabs of different tabs share one row
+    for(var i=0;i<group.children.length;i++){
+      var c = group.children[i];
+      if(!fr || c.getAttribute("data-for")===fr) c.classList.toggle("on", c===b);
+    }
+    if(b.getAttribute("data-tab")){ tab = b.getAttribute("data-tab"); tabNote = b.getAttribute("data-note"); }
+    if(b.getAttribute("data-sub")) subOf[b.getAttribute("data-for")] = b.getAttribute("data-sub");
+    if(b.getAttribute("data-price")) price = b.getAttribute("data-price");
+    if(b.getAttribute("data-tier")) tier = b.getAttribute("data-tier");
     if(b.getAttribute("data-scale")) logX = b.getAttribute("data-scale")==="log";
     draw();
   });

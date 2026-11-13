@@ -42,7 +42,23 @@ def metrics(m):
     return {"cost": cost and round(cost, 4), "cost_total": total and round(total),
             "time": (t := num((m.get("performance_v3") or {}).get("time_per_task_seconds"))) and round(t),
             "tokens": round(tokens_total / tasks) if tokens_total and tasks else None,
-            "tokens_total": tokens_total and round(tokens_total)}
+            "tokens_total": tokens_total and round(tokens_total),
+            "speed": (v := pick(m, SPEED)) and round(v, 1), "ttft": (v := pick(m, TTFT)) and round(v, 2)}
+
+
+# Output speed (tokens/s) and wait for the first token (s). The field names differ between API
+# versions, so try the known spellings at the top level and inside performance_v3.
+SPEED = ("median_output_tokens_per_second", "output_tokens_per_second", "output_speed_tokens_per_second", "output_speed")
+TTFT = ("median_time_to_first_token_seconds", "time_to_first_token_seconds", "ttft_seconds", "time_to_first_token")
+
+
+def pick(m, names):
+    for src in (m.get("performance_v3") or {}, m):
+        for n in names:
+            v = num(src.get(n))
+            if v:
+                return v
+    return None
 
 
 BENCH = {"omni": "aa_omniscience_index", "acc": "aa_omniscience_accuracy", "nonhall": "aa_omniscience_non_hallucination_rate",
@@ -122,6 +138,8 @@ def fetch():
         if e.code != 403:
             raise
         models = pages(API + "/free", key)
+    if models:  # field names for the log, to check speed and latency are found
+        print("model fields:", sorted(models[0]), "| performance_v3:", sorted((models[0].get("performance_v3") or {})))
     year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).date().isoformat()
     best, variants = {}, []
     for m in models:

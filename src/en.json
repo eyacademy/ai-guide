@@ -342,5 +342,19 @@
  "≈ в 10 раз больше Plus, без 5-часового окна": "≈ 10× the Plus allowance, no 5-hour window",
  "≈ в 20 раз больше Plus": "≈ 20× the Plus allowance",
  "≈ в 50 раз больше Plus": "≈ 50× the Plus allowance",
- "≈ в {ratio} раза больше Opus": "≈ {ratio}× the Opus allowance"
+ "≈ в {ratio} раза больше Opus": "≈ {ratio}× the Opus allowance",
+ "Скорость и задержка": "Speed and latency",
+ "Скорость вывода — сколько токенов в секунду модель выдаёт, больше — лучше. Задержка — сколько секунд проходит до первого токена ответа, меньше — лучше.": "Output speed is how many tokens per second the model produces; higher is better. Latency is how many seconds pass before the first token of the answer; lower is better.",
+ "Скорость вывода": "Output speed",
+ "Задержка": "Latency",
+ "Цена задачи внутри подписки: часть цены тарифа, которая приходится на одну задачу при полном использовании лимита. Полые точки — модели, для которых нет данных о подписке; они показаны по цене API.": "Cost of a task within a subscription: the share of the plan price that falls on one task when the full allowance is used. Hollow points are models with no subscription data; they are shown at the API price.",
+ "По API": "API price",
+ "По подписке": "Subscription",
+ "Тариф $20": "$20 plan",
+ "Тариф $100+": "$100+ plan",
+ " ток/с": " tok/s",
+ "Цена задачи по подписке": "Subscription cost per task",
+ "Тариф": "Plan",
+ "не входит в тариф, по цене API": "not in this plan, at API price",
+ "нет данных о подписке, по цене API": "no subscription data, at API price"
 }

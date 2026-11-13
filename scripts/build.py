@@ -95,8 +95,14 @@ TABS = [("cost", "Интеллект и цена", ("cost",),
          "Пунктир соединяет модели, которые быстрее всех при своём уровне интеллекта."),
         ("tokens", "Токены и стоимость", ("tokens", "tokens_total", "cost", "cost_total"),
          "Сколько модель «думает» и во что это обходится. Меньше — лучше. "
-         "Токены — это объём текста, который модель пишет, включая рассуждения.")]
-SUBS = [("tokens", "Токены на задачу"), ("tokens_total", "Всего токенов"), ("cost", "Цена задачи"), ("cost_total", "Общая стоимость")]
+         "Токены — это объём текста, который модель пишет, включая рассуждения."),
+        ("speed", "Скорость и задержка", ("speed", "ttft"),
+         "Скорость вывода — сколько токенов в секунду модель выдаёт, больше — лучше. "
+         "Задержка — сколько секунд проходит до первого токена ответа, меньше — лучше.")]
+SUBS = {"tokens": [("tokens", "Токены на задачу"), ("tokens_total", "Всего токенов"), ("cost", "Цена задачи"), ("cost_total", "Общая стоимость")],
+        "speed": [("speed", "Скорость вывода"), ("ttft", "Задержка")]}
+SUB_NOTE = ("Цена задачи внутри подписки: часть цены тарифа, которая приходится на одну задачу при полном использовании лимита. "
+            "Полые точки — модели, для которых нет данных о подписке; они показаны по цене API.")
 
 
 def compare(data):
@@ -110,16 +116,24 @@ def compare(data):
                 if t[0] == "tokens" else t for t in tabs]
     tab_html = "".join(f'<button type="button" data-tab="{i}" data-note="{html.escape(T(note))}"{" class=on" if n == 0 else ""}>{T(t)}</button>'
                        for n, (i, t, _, note) in enumerate(tabs))
-    subs = [(k, t) for k, t in SUBS if has(k)]
-    sub_html = "".join(f'<button type="button" data-sub="{k}"{" class=on" if n == 0 else ""}>{T(t)}</button>' for n, (k, t) in enumerate(subs))
+    sub_html = ""
+    for tab, items in SUBS.items():
+        items = [(k, t) for k, t in items if has(k)]
+        sub_html += "".join(f'<button type="button" data-sub="{k}" data-for="{tab}"{" class=on" if n == 0 else ""}>{T(t)}</button>'
+                            for n, (k, t) in enumerate(items))
+    price = "" if not data.get("subs") else (
+        f'<span class="cmp-seg cmp-price"><button type="button" data-price="api" class=on>{T("По API")}</button>'
+        f'<button type="button" data-price="sub">{T("По подписке")}</button></span>'
+        f'<span class="cmp-seg cmp-tier" hidden><button type="button" data-tier="basic" class=on>{T("Тариф $20")}</button>'
+        f'<button type="button" data-tier="top">{T("Тариф $100+")}</button></span>')
     colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)
     return (f'<div class="cmp" data-colors="{colors}">'
             f'<div class="cmp-box"><div class="cmp-tabs">{tab_html}</div>'
             f'<div class="cmp-bar"><div class="cmp-subs" hidden>{sub_html}</div>'
-            f'<div class="cmp-ctl"><span class="cmp-seg"><button type="button" data-scale="log" class=on>{T("Лог")}</button>'
+            f'<div class="cmp-ctl">{price}<span class="cmp-seg"><button type="button" data-scale="log" class=on>{T("Лог")}</button>'
             f'<button type="button" data-scale="lin">{T("Линейная")}</button></span>'
             f'<label class="cmp-par"><input type="checkbox" checked> {T("Линия выгодности")}</label></div></div>'
-            f'<p class="cmp-note">{html.escape(T(tabs[0][3]))}</p>'
+            f'<p class="cmp-note" data-sub-note="{html.escape(T(SUB_NOTE))}">{html.escape(T(tabs[0][3]))}</p>'
             f'<div class="cmp-wrap"><div class="cmp-main"><div class="cmp-plot"><p class="cmp-load">{T("Загружаем данные…")}</p></div><div class="cmp-best"></div></div>'
             f'<aside class="cmp-side"><div class="cmp-side-h"><b>{T("Модели")}</b><span class="cmp-count"></span></div>'
             f'<input class="cmp-q" type="search" placeholder="{T("Найти модель")}" aria-label="{T("Найти модель")}">'
@@ -160,6 +174,40 @@ def resolve(prices, pattern, fallback, data=None, creator=None, rank=None, used=
         print("resolve:", pattern, "->", cur[rank - 1], "(model line renamed)")
         return cur[rank - 1]
     return None
+
+
+def sub_ratios(data):
+    """Share of the API price a task costs inside a subscription, per model line and plan tier.
+
+    {family: {"basic": [ratio, plan], "top": [ratio, plan]}}; ratio 0 means the plan barely spends
+    its limit on that model, None that the plan does not include it. Lines with no plan data are left out.
+    """
+    cfg = json.load(open(os.path.join(SRC, "plans.json"), encoding="utf-8"))
+    pt = cfg.get("per_task") or {}
+    fams = sorted({v["family"] for v in data.get("variants") or []})
+    out = {}
+    for pv in cfg["providers"]:
+        for tier, floor in (pt.get("tiers") or {}).items():
+            i, pl = next(((i, pl) for i, pl in enumerate(pv["plans"]) if pl["price"] >= floor), (None, None))
+            if pl is None:
+                continue
+            for m in pv["models"]:
+                if "combo" in m:
+                    continue
+                if i < m.get("from", 0):
+                    r = None
+                elif m.get("free_from") is not None and i >= m["free_from"]:
+                    r = 0
+                else:
+                    r = round(pl["price"] / (pv["budget"] * pl["x"] * m.get("share", 1)), 4)
+                for f in fams:
+                    if re.search(m["model"], f):
+                        out.setdefault(f, {})[tier] = [r, f'{pv["name"]} {pl["name"]}']
+    for o in pt.get("others") or []:
+        for f in fams:
+            if re.search(o["model"], f) and f not in out:
+                out[f] = {t: [o["ratio"], o["plan"]] for t in pt.get("tiers") or {}}
+    return out
 
 
 def subscriptions(data):
@@ -306,6 +354,8 @@ def tag_links(body):
 UI = {"locale": "ru-RU", "sec": " с", "min": " мин", "hour": " ч", "k": " тыс.", "M": " млн", "B": " млрд",
       "level": "уровень ", "score": "Интеллект", "cost": "Цена задачи", "cost_total": "Общая стоимость",
       "time": "Время на задачу", "tokens": "Токены на задачу", "tokens_total": "Всего токенов", "axisY": "↑ Интеллект",
+      "speed": "Скорость вывода", "ttft": "Задержка", "tps": " ток/с", "subCost": "Цена задачи по подписке",
+      "plan": "Тариф", "apiPrice": "нет данных о подписке, по цене API", "notInPlan": "не входит в тариф, по цене API", "nearFree": "≈ 0",
       "pick": "Выберите модели в списке справа.", "noData": "Не удалось загрузить данные. Обновите страницу.",
       "capScore": "Топ-{n} моделей, баллы из 100", "capOmni": "Итоговый балл от −100 до 100",
       "capAcc": "Доля верных ответов", "capHall": "Доля выдуманных ответов, меньше — лучше", "capField": "Баллы из 100",
@@ -333,6 +383,7 @@ if sum(1 for m in data["bench"] if m.get("omni") is not None) < 5:
     d0 = datetime.fromisoformat(manual["as_of"])
     data["knowledge_as_of"] = manual["as_of"]
 data["logos"] = LOGOS
+data["subs"] = sub_ratios(data)
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
 def render(lang):
