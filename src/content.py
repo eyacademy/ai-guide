@@ -50,7 +50,8 @@ out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' 
 # 2. rating
 rating = ('<div class="chart"><div class="chart-top"><span>Топ-20 моделей, баллы из 100</span><span>{CHART_DATE}</span></div>'
           '<ol class="bars">{CHART_BARS}</ol><div class="legend">{CHART_LEGEND}</div></div>'
-          '<p class="src">Источник: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>')
+          '<p class="src">Источник: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>'
+          '{COMPARE}')
 out.append(sec("rating", "01", "Рейтинг моделей",
                "Artificial Analysis Intelligence Index. Независимая лаборатория прогоняет модели через 10 тестов: агентные задачи, программирование, знания, научное мышление. Чем выше балл, тем лучше модель справляется со сложной работой.",
                rating))
@@ -212,6 +213,7 @@ m += grid([
     ("Hailuo", "Модель MiniMax H3: ролики в 2K до 15 секунд со стереозвуком.", "https://hailuoai.video"),
     ("Runway", "Профессиональный видеоредактор с ИИ.", "https://runway.com"),
     ("CapCut", "Популярный видеоредактор с ИИ-инструментами: субтитры, эффекты, монтаж.", "https://www.capcut.com"),
+    ("VEED", "Видеоредактор прямо в браузере: автосубтитры, перевод и озвучка, ИИ-аватары, чистка звука. Удобен для роликов в соцсети.", "https://www.veed.io"),
 ])
 m += h3("Аватары и перевод видео")
 m += grid([

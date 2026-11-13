@@ -41,10 +41,41 @@ def chart(data):
     return "".join(bars), "".join(legend), f"Обновлено {d.day} {MONTHS[d.month - 1]} {d.year} · обновляется ежедневно"
 
 
+TABS = [("cost", "Интеллект и цена", ("cost",),
+         "Каждая точка — модель. Чем выше, тем умнее, чем левее, тем дешевле одна задача. "
+         "Пунктир соединяет самые выгодные модели: за те же деньги умнее не найти."),
+        ("time", "Время на задачу", ("time",),
+         "Сколько минут модель в среднем тратит на одну задачу из рейтинга. Чем левее, тем быстрее. "
+         "Пунктир соединяет модели, которые быстрее всех при своём уровне интеллекта."),
+        ("tokens", "Токены и стоимость", ("tokens", "tokens_total", "cost", "cost_total"),
+         "Сколько модель «думает» и во что это обходится. Меньше — лучше. "
+         "Токены — это объём текста, который модель пишет, включая рассуждения.")]
+SUBS = [("tokens", "Токены на задачу"), ("tokens_total", "Всего токенов"), ("cost", "Цена задачи"), ("cost_total", "Общая стоимость")]
+
+
+def compare(data):
+    rows = [dict(m, c=color(m["creator"])) for m in data.get("compare") or []]
+    has = lambda k: sum(1 for m in rows if m.get(k)) >= 5
+    tabs = [t for t in TABS if any(has(k) for k in t[2])]
+    if not has("cost"):
+        return ""
+    tab_html = "".join(f'<button type="button" data-tab="{i}" data-note="{html.escape(note)}"{" class=on" if n == 0 else ""}>{t}</button>'
+                       for n, (i, t, _, note) in enumerate(tabs))
+    subs = [(k, t) for k, t in SUBS if has(k)]
+    sub_html = "".join(f'<button type="button" data-sub="{k}"{" class=on" if n == 0 else ""}>{t}</button>' for n, (k, t) in enumerate(subs))
+    payload = html.escape(json.dumps(rows, ensure_ascii=False, separators=(",", ":")), quote=True)
+    return (f'<div class="cmp" data-models="{payload}">'
+            f'<h3>Какая модель выгоднее</h3><p class="cap">Наведите на точку или строку, чтобы увидеть подробности. '
+            f'Цена задачи — средняя стоимость одной задачи из рейтинга по ценам API.</p>'
+            f'<div class="cmp-box"><div class="cmp-tabs">{tab_html}</div>'
+            f'<div class="cmp-subs" hidden>{sub_html}</div><p class="cmp-note">{html.escape(tabs[0][3])}</p>'
+            f'<div class="cmp-plot"></div><div class="cmp-best"></div></div></div>')
+
+
 data = load_data()
 body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {})})["BODY"]
 bars, legend, date = chart(data)
-body = body.replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
+body = body.replace("{COMPARE}", compare(data)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
 body = body.replace("{VERSION}", version, 1)
