@@ -113,13 +113,13 @@ def sec(id_, num, title, lead, body):
     l = f'<p class="sec-lead">{T(lead)}</p>' if lead else ""
     return f'<section id="eyai-{id_}">\n<div class="sec-h"><span class="num">{num}</span><h2>{T(title)}</h2></div>\n{l}\n{body}\n</section>\n'
 
-SHORT = {"Агенты в рабочих чатах команды": "В чатах команды", "Агенты на вашем компьютере": "На компьютере",
-         "Агенты в облаке, 24/7": "В облаке, 24/7", "Агенты на сервере компании": "На сервере компании",
-         "MCP: подключение ИИ к вашим системам": "MCP", "Автоматизация без программирования": "Автоматизация",
+SHORT = {"Агенты в рабочих чатах команды": "Командные агенты", "Агенты на вашем компьютере": "Локальные агенты",
+         "Агенты в облаке, 24/7": "Облачные агенты 24/7", "Агенты на сервере компании": "Серверные агенты",
+         "MCP: подключение ИИ к вашим системам": "MCP-интеграции", "Автоматизация без программирования": "Автоматизация процессов",
          "Аватары и перевод видео": "Аватары и перевод", "Сайты и приложения без программирования": "Сайты и приложения",
          "Документы, презентации, инфографика": "Документы и презентации",
-         "Фото, видео и аудио": "Фото, видео, аудио", "Проверка на плагиат": "Плагиат",
-         "Свой стек на сервере": "Свой стек", "Запуск на своём компьютере": "На компьютере", "Дообучение моделей": "Дообучение"}
+         "Изображения, видео и аудио": "Изображения, видео, аудио", "Проверка на плагиат": "Антиплагиат",
+         "Свой стек на сервере": "Своя инфраструктура", "Запуск на своём компьютере": "Локальный запуск", "Дообучение моделей": "Дообучение"}
 
 
 def short_label(heading):
@@ -146,7 +146,7 @@ def h3(t, cap=None):
     return f"<h3>{T(t)}</h3>" + (f'<p class="cap">{T(cap)}</p>' if cap else "")
 
 NAV = [("rating", "Рейтинг"), ("llm", "Чат-боты"), ("agents", "ИИ-агенты"),
-       ("media", "Креативы"), ("tools", "Полезные сервисы"), ("company", "ИИ в компании"), ("detect", "Детекторы")]
+       ("media", "Медиаконтент"), ("tools", "Прикладные сервисы"), ("company", "Внедрение ИИ"), ("detect", "Детекторы")]
 
 out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' +
        "".join(f'<a href="#eyai-{i}"><span>{n}</span>{T(t)}</a>' for n, (i, t) in enumerate(NAV, 1))
@@ -179,7 +179,7 @@ v += vendor("Anthropic", "Claude",
             "Точно понимает формулировку задачи и пишет естественным языком, поэтому текст требует меньше правок. Сильные стороны — программирование, длинные документы и длительная самостоятельная работа.",
             models("Anthropic", ["Claude Opus 5.5", "Claude Sonnet 5.5", "Claude Fable 5.1", "Claude Haiku 4.5"]),
             [("Чат", "https://claude.ai", "claude.ai"),
-             ("Приложение: Cowork и Claude Code", "https://claude.com/download", "claude.com/download"),
+             ("Приложение для компьютера: Cowork, Claude Code", "https://claude.com/download", "claude.com/download"),
              ("Claude в Excel, Word и PowerPoint", "https://claude.com/claude-for-microsoft-365", "claude.com"),
              ("API", "https://platform.claude.com", "platform.claude.com")])
 v += vendor("Google", "Gemini",
@@ -199,39 +199,39 @@ v += vendor("Microsoft", "Copilot",
 llm = v
 # Subscriptions: kinds, value, per-model limits and privacy in one tabbed block.
 # One table: the two kinds of plans side by side, no repeated cards.
-PLAN_ROWS = [("ChatGPT", "Free, Go $8, Plus $20, Pro от $100", "Да, можно отключить", "Business $20–25"),
-             ("Claude", "Free, Pro $20, Max $100, Ultra $200", "По выбору пользователя, при согласии хранение до 5 лет", "Team $20–25"),
-             ("Gemini", "Free, AI Plus $5, AI Pro $20, Ultra от $100", "Да, можно отключить", "Google Workspace от $7, Gemini включён"),
-             ("Copilot", "Бесплатно, Microsoft 365 Personal $10, Premium $20", "В новом приложении нет",
+PLAN_ROWS = [("ChatGPT", "Free, Go $8, Plus $20, Pro от $100", "Да, отключается", "Business $20–25"),
+             ("Claude", "Free, Pro $20, Max $100, Ultra $200", "По согласию пользователя; хранение до 5 лет", "Team $20–25"),
+             ("Gemini", "Free, AI Plus $5, AI Pro $20, Ultra от $100", "Да, отключается", "Google Workspace от $7, Gemini включён"),
+             ("Copilot", "Free, Microsoft 365 Personal $10, Premium $20", "Нет (в новом приложении)",
               "Copilot Chat бесплатно с M365, Microsoft 365 Copilot $21–30 + лицензия M365")]
 kinds = ('<p class="pcap">' + T("Личная подписка может обучать модели на вашей переписке, пока эта настройка не отключена, и не даёт компании контроля над данными. "
          "Бизнес-подписка не обучает модели на ваших данных, предусматривает администратора, вход через корпоративный аккаунт и единый счёт; подключается от 2 пользователей.") + '</p>'
-         f'<div class="pl-wrap"><table class="pl pl-k"><tbody><tr class="pl-h"><th>{T("Сервис")}</th><th>{T("Личная подписка")}</th>'
-         f'<th>{T("Обучение на данных")}</th><th>{T("Бизнес-подписка")}</th></tr>'
+         f'<div class="pl-wrap"><table class="pl pl-k"><tbody><tr class="pl-h"><th>{T("Сервис")}</th><th>{T("Личные тарифы")}</th>'
+         f'<th>{T("Обучение на данных пользователей")}</th><th>{T("Бизнес-тарифы")}</th></tr>'
          + "".join(f'<tr><td><b>{logo(n, "pl-lg", 16)}{n}</b></td><td>{T(a)}</td><td>{T(t)}</td><td>{T(b)}</td></tr>' for n, a, t, b in PLAN_ROWS)
-         + f'<tr><td><b>API</b></td><td>{T("Оплата за объём запросов, без подписки")}</td>'
-         f'<td>{T("Не обучают по умолчанию, кроме бесплатного уровня Gemini API")}</td><td>—</td></tr>'
+         + f'<tr><td><b>API</b></td><td>{T("Оплата по объёму запросов")}</td>'
+         f'<td>{T("Нет по умолчанию (кроме бесплатного уровня Gemini API)")}</td><td>—</td></tr>'
          f'</tbody></table></div><p class="src">{T("Цены за пользователя в месяц в долларах США. У бизнес-тарифов меньшая цена при оплате за год.")}</p>')
 privacy = '<div class="grid">' + "".join(f'<div class="card"><b>{logo(a)}{a}</b><p>{T(t)}</p></div>' for a, t in [
     ("ChatGPT", "Settings → Data controls → выключить «Improve the model for everyone». Временные чаты не используются для обучения."),
     ("Claude", "Settings → Privacy → выключить «Help improve Claude». Чаты в режиме инкогнито не используются для обучения."),
     ("Gemini", "Activity → выключить «Keep Activity». Временные чаты не используются для обучения."),
 ]) + "</div>"
-llm += h3("Подписки", "Виды подписок, их стоимость и доступный объём работы. Для рабочих документов выбирайте бизнес-подписку: "
-          "она сопоставима по цене с личной, а данные компании остаются под её контролем.")
-llm += ('<div class="pl-box"><div class="pl-tabs"><button type="button" class="on">' + T("Какие бывают") + '</button>{SUBS_TABS}'
-        '<button type="button">' + T("Как отключить обучение") + '</button></div>'
+llm += h3("Тарифы и лимиты", "Типы тарифов, их стоимость и объём использования. Для работы с документами компании рекомендуем бизнес-тариф: "
+          "он сопоставим по цене с личным, а данные остаются под контролем компании.")
+llm += ('<div class="pl-box"><div class="pl-tabs"><button type="button" class="on">' + T("Типы тарифов") + '</button>{SUBS_TABS}'
+        '<button type="button">' + T("Отключение обучения") + '</button></div>'
         f'<div class="pl-panel">{kinds}</div>' + "{SUBS_PANELS}" + f'<div class="pl-panel" hidden>{privacy}</div></div>')
 others = grid([
-    ("DeepSeek", f"Сильная китайская модель {model('DeepSeek', 'DeepSeek V4.1 Flash')}. Бесплатный чат, веса можно скачать и запустить у себя.", "https://chat.deepseek.com", "открытая"),
+    ("DeepSeek", f"Сильная китайская модель {model('DeepSeek', 'DeepSeek V4.1 Flash')}. Бесплатный чат, веса можно скачать и запустить у себя.", "https://chat.deepseek.com", "открытые веса"),
     ("Perplexity", "Поиск в интернете с источниками под каждым ответом.", "https://www.perplexity.ai"),
     ("Grok", f"Модель {model('SpaceXAI', 'Grok 4.7')} от SpaceXAI. Встроен в соцсеть X.", "https://grok.com"),
     ("Genspark", "Чат, презентации, таблицы и исследования в одном месте.", "https://www.genspark.ai"),
     ("Meta AI", f"Ассистент на модели {model('Meta', 'Muse Spark 1.3')}. В Казахстане удобнее всего через WhatsApp.", "https://www.meta.ai"),
-    ("Mistral Vibe", "Европейский чат-бот, до мая 2026 назывался Le Chat.", "https://chat.mistral.ai", "открытая"),
-    ("Qwen", f"Модели Alibaba. Флагман {model('Alibaba', 'Qwen3.8 Max')}.", "https://chat.qwen.ai", "открытая"),
-    ("Z.ai (GLM)", f"{model('Z AI', 'GLM-5.3')}, одна из сильнейших открытых моделей.", "https://chat.z.ai", "открытая"),
-    ("Kimi", f"{model('Kimi', 'Kimi K3')} от Moonshot AI. Запускает группу агентов для крупных задач.", "https://www.kimi.com", "открытая"),
+    ("Mistral Vibe", "Европейский чат-бот, до мая 2026 назывался Le Chat.", "https://chat.mistral.ai", "открытые веса"),
+    ("Qwen", f"Модели Alibaba. Флагман {model('Alibaba', 'Qwen3.8 Max')}.", "https://chat.qwen.ai", "открытые веса"),
+    ("Z.ai (GLM)", f"{model('Z AI', 'GLM-5.3')}, одна из сильнейших открытых моделей.", "https://chat.z.ai", "открытые веса"),
+    ("Kimi", f"{model('Kimi', 'Kimi K3')} от Moonshot AI. Запускает группу агентов для крупных задач.", "https://www.kimi.com", "открытые веса"),
     ("t3.chat", "Одна подписка на модели разных компаний в одном окне.", "https://t3.chat"),
 ])
 llm = vendor_tabs([("Другие чат-боты", others)]) + llm
@@ -257,15 +257,15 @@ ag += grid([
     ("dots", "OpenAI, сентябрь 2026. Постоянные агенты на самой сильной модели OpenAI в ChatGPT, Slack и Teams. Работают в фоновом режиме и сами предлагают помощь.", "https://openai.com/index/introducing-dots/", "Pro", True, "openai.com"),
     ("Grok Bot", "SpaceXAI, август 2026. Команда ботов на одном облачном компьютере. Задачу можно показать, и бот запомнит порядок действий.", "https://x.ai/bot", "SuperGrok", True, "x.ai/bot"),
     ("Muse", "Meta, сентябрь 2026. Личный агент с отдельной виртуальной машиной. Агент Sentinel пропускает в интернет только одобренные действия.", "https://muse.ai", "только США", True),
-    ("Gemini Spark", "Google. Агент работает круглосуточно, задачи можно ставить письмом в Gmail.", "https://gemini.google/overview/agent/spark/", "не во всех странах", True, "gemini.google"),
+    ("Gemini Spark", "Google. Агент работает круглосуточно, задачи можно ставить письмом в Gmail.", "https://gemini.google/overview/agent/spark/", "доступен не во всех странах", True, "gemini.google"),
 ])
 ag += h3("Агенты на сервере компании", "Открытый код: устанавливаются на ваш сервер или компьютер, данные не передаются поставщику. Работают с любой моделью, в том числе локальной. Установку и безопасность обеспечивает ИТ-отдел.")
 ag += grid([
-    ("OpenClaw", "Самый популярный открытый агент, около 390 тыс. звёзд на GitHub. Браузер, файлы, терминал; общается через WhatsApp, Telegram, Slack и другие мессенджеры.", "https://openclaw.ai", "открытый", False),
-    ("Hermes Agent", "Nous Research. Устанавливается одной командой, сам создаёт навыки из выполненных задач и помнит контекст. 20+ каналов, включая Telegram и Teams.", "https://hermes-agent.nousresearch.com", "открытый", False, "nousresearch.com"),
-    ("NVIDIA NemoClaw", "OpenClaw в защищённой среде NVIDIA с моделями Nemotron и правилами безопасности.", "https://www.nvidia.com/en-us/ai/nemoclaw/", "открытый", False),
+    ("OpenClaw", "Самый популярный открытый агент, около 390 тыс. звёзд на GitHub. Браузер, файлы, терминал; общается через WhatsApp, Telegram, Slack и другие мессенджеры.", "https://openclaw.ai", "открытый код", False),
+    ("Hermes Agent", "Nous Research. Устанавливается одной командой, сам создаёт навыки из выполненных задач и помнит контекст. 20+ каналов, включая Telegram и Teams.", "https://hermes-agent.nousresearch.com", "открытый код", False, "nousresearch.com"),
+    ("NVIDIA NemoClaw", "OpenClaw в защищённой среде NVIDIA с моделями Nemotron и правилами безопасности.", "https://www.nvidia.com/en-us/ai/nemoclaw/", "открытый код", False),
 ])
-ag += h3("Для разработчиков")
+ag += h3("Агенты для разработки")
 ag += grid([
     ("Codex", "Агент OpenAI для кода: режим в приложении ChatGPT и версия в браузере.", "https://chatgpt.com/codex", None, False, "chatgpt.com/codex"),
     ("Claude Code", "Агент Anthropic: терминал, IDE, приложение для компьютера, браузер.", "https://claude.com/product/claude-code"),
@@ -282,7 +282,7 @@ ag += grid([
     ("Glama", "Самый большой каталог MCP-серверов с поиском.", "https://glama.ai/mcp/servers"),
     ("mcp.so", "Большой открытый каталог MCP-серверов от сообщества.", "https://mcp.so"),
 ])
-ag += '<p class="note">' + T("<b>Агенты и MCP-серверы действуют сами.</b> Перед подключением к рабочим данным ограничьте права доступа и проверьте, кто автор сервера.") + "</p>"
+ag += '<p class="note">' + T("<b>Агенты и MCP-серверы действуют автономно.</b> Перед подключением к рабочим данным ограничьте права доступа и проверьте, кто автор сервера.") + "</p>"
 ag += h3("Автоматизация без программирования", "Цепочки действий между сервисами: пришло письмо — ИИ его разобрал — задача появилась в CRM.")
 ag += grid([
     ("n8n", "Гибкий конструктор с ИИ-агентами. Можно развернуть на серверах компании.", "https://n8n.io"),
@@ -293,7 +293,7 @@ out.append(sec("agents", "03", "ИИ-агенты",
                "Чат-бот отвечает на вопросы. Агент сам выполняет задачу: планирует шаги, пользуется инструментами и доводит работу до результата.", tabify(ag)))
 
 # 5. media
-m = h3("Комплексные платформы", "Платформы, где в одной подписке собраны модели для фото, видео и звука.")
+m = h3("Комплексные платформы", "Платформы, где в одной подписке собраны модели для изображений, видео и аудио.")
 m += grid([
     ("Higgsfield", "Казахстанская компания-единорог: фото, видео и звук в одном сервисе. Ведущие модели (Seedance, Kling, Veo, Nano Banana, Wan) и собственные инструменты: Cinema Studio, Soul ID, Speak. Популярен у маркетологов для социальных сетей.", "https://higgsfield.ai", "из Казахстана"),
     ("Adobe Firefly", "Модели Adobe, Google, OpenAI и FLUX в одной подписке, безопасно для коммерческого использования.", "https://firefly.adobe.com"),
@@ -331,7 +331,7 @@ m += grid([
     ("Synthesia", "Корпоративные обучающие видео с аватарами на 140+ языках.", "https://www.synthesia.io"),
     ("D-ID", "Говорящие аватары из фотографии и ИИ-агенты с лицом для сайта.", "https://www.d-id.com"),
 ])
-m += h3("Голос и музыка")
+m += h3("Аудио и музыка")
 m += grid([
     ("ElevenLabs", "Озвучка, клонирование голоса, дубляж" + (lambda p: f", {p}" if p else "")(place("speech", r"eleven", "речи", "лучшая модель речи в рейтинге")) + ". Распознаёт казахскую речь.", "https://elevenlabs.io"),
     ("Suno", f"Песни и фоновая музыка по описанию. Версия {media('music', r'^Suno', 'Suno v6').replace('Suno ', '')}.", "https://suno.com"),
@@ -342,7 +342,7 @@ m += grid([
     ("Claude Design", "Слайды, одностраничники и прототипы по описанию. Экспорт в PPTX, PDF и Canva.", "https://claude.ai/design", None, False, "claude.ai/design"),
     ("Figma Make", "Кликабельный прототип интерфейса по описанию.", "https://www.figma.com/make/"),
 ])
-out.append(sec("media", "04", "Креативы: фото, видео, голос",
+out.append(sec("media", "04", "Медиаконтент: изображения, видео, аудио",
                "Многие сервисы работают на моделях сторонних разработчиков, поэтому одна и та же модель встречается в разных местах. Выбирайте по удобству и цене.", tabify(m)))
 
 # 6. tools
@@ -362,18 +362,18 @@ t += grid([
     ("Napkin AI", "Превращает текст в схемы и инфографику.", "https://www.napkin.ai"),
     ("Julius AI", "Загрузите таблицу и задайте вопрос — сервис подготовит анализ и графики.", "https://julius.ai"),
 ])
-t += h3("Встречи", "Сначала проверьте встроенные функции: Google Meet, Zoom и Teams уже умеют делать конспект встречи.")
+t += h3("Протоколы встреч", "Сначала проверьте встроенные функции: Google Meet, Zoom и Teams уже умеют делать конспект встречи.")
 t += grid([
     ("Granola", "Конспект встречи по звуку с компьютера, без бота в звонке.", "https://www.granola.ai"),
     ("Fireflies", "Бот записывает звонки и выгружает итоги в CRM.", "https://fireflies.ai"),
     ("tl;dv", "Запись и конспект встреч, хранение данных в ЕС.", "https://tldv.io"),
     ("Plaud", "Карманный диктофон с ИИ для офлайн-встреч.", "https://www.plaud.ai"),
 ])
-out.append(sec("tools", "05", "Полезные сервисы", None, tabify(t)))
+out.append(sec("tools", "05", "Прикладные сервисы", None, tabify(t)))
 
 # 7. company
 c = ""
-c += h3("Где взять API")
+c += h3("Поставщики API")
 c += grid([
     ("OpenAI", "Модели GPT. Вход через аккаунт ChatGPT.", "https://platform.openai.com"),
     ("Anthropic", "Модели Claude.", "https://platform.claude.com"),
@@ -419,10 +419,10 @@ c += grid([
     ("OpenAI Fine-tuning", "Дообучение в облаке: достаточно загрузить примеры и запустить обучение, отдельные специалисты не нужны.", "https://platform.openai.com/docs/guides/fine-tuning", None, False, "platform.openai.com"),
     ("Google Vertex AI", "Дообучение и запуск моделей в облаке Google.", "https://cloud.google.com/vertex-ai"),
 ])
-out.append(sec("company", "06", "ИИ в компании", None, tabify(c)))
+out.append(sec("company", "06", "Внедрение ИИ в компании", None, tabify(c)))
 
 # 8. detect
-d = h3("Фото, видео и аудио", "Отсутствие метки не означает, что файл создан человеком.")
+d = h3("Изображения, видео и аудио", "Отсутствие метки не означает, что файл создан человеком.")
 d += grid([
     ("SynthID Detector", "Проверяет фото, видео и аудио на скрытую метку ИИ от Google, OpenAI, NVIDIA и Kakao. Бесплатно, около 10 проверок в день.", "https://synthid.com", "новое"),
 ])
@@ -441,10 +441,10 @@ d += grid([
     ("QuillBot", "Проверка на 100+ языках, входит в Premium.", "https://quillbot.com/plagiarism-checker"),
     ("Scribbr", "Проверка академических работ на технологии Turnitin.", "https://www.scribbr.com"),
 ])
-out.append(sec("detect", "07", "Проверка: ИИ или не ИИ", None, tabify(d)))
+out.append(sec("detect", "07", "Детекторы ИИ-контента", None, tabify(d)))
 
 out.append("</div>")
-out.append(f'<div class="cta"><div class="w"><div><h2>{T("Хотите научить команду работать с ИИ?")}</h2>'
+out.append(f'<div class="cta"><div class="w"><div><h2>{T("Корпоративное обучение работе с ИИ")}</h2>'
            f'<p>{T("Корпоративные тренинги Академии бизнеса EY под задачи вашей компании.")}</p></div>'
            f'<a class="btn" href="{T("https://eyacademyeurasia.com/ai")}?utm_source=ai-guide" target="_blank" rel="noopener">{T("Узнать о программах")} &rarr;</a></div></div>')
 out.append("</div>")

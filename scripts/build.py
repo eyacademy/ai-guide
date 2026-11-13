@@ -84,25 +84,25 @@ def chart(data):
         v += step
     d = datetime.fromisoformat(data["updated"].replace("Z", "+00:00"))
     return (len(models), "".join(bars), "".join(legend),
-            T("Обновлено {date} · обновляется ежедневно").replace("{date}", human_date(d)), "".join(grid))
+            T("Данные на {date} · обновляются ежедневно").replace("{date}", human_date(d)), "".join(grid))
 
 
-TABS = [("cost", "Интеллект и цена", ("cost",),
-         "Каждая точка — модель. Чем выше, тем умнее, чем левее, тем дешевле одна задача. "
-         "Пунктир соединяет самые выгодные модели: за те же деньги умнее не найти."),
+TABS = [("cost", "Интеллект и стоимость", ("cost",),
+         "Каждая точка — модель. Чем выше, тем выше индекс интеллекта; чем левее, тем ниже стоимость задачи. "
+         "Пунктир — граница эффективности: модели с максимальным интеллектом при своей стоимости."),
         ("time", "Время на задачу", ("time",),
-         "Сколько минут модель в среднем тратит на одну задачу из рейтинга. Чем левее, тем быстрее. "
-         "Пунктир соединяет модели, которые быстрее всех при своём уровне интеллекта."),
+         "Среднее время, которое модель тратит на одну задачу из рейтинга. Чем левее, тем быстрее. "
+         "Пунктир — граница эффективности: самые быстрые модели при своём уровне интеллекта."),
         ("tokens", "Токены и стоимость", ("tokens", "tokens_total", "cost", "cost_total"),
-         "Сколько модель «думает» и во что это обходится. Меньше — лучше. "
-         "Токены — это объём текста, который модель пишет, включая рассуждения."),
+         "Объём рассуждений модели и его стоимость. Меньше — лучше. "
+         "Токены — объём текста, который генерирует модель, включая рассуждения."),
         ("speed", "Скорость и задержка", ("speed", "ttft"),
          "Скорость вывода — сколько токенов в секунду модель выдаёт, больше — лучше. "
          "Задержка — сколько секунд проходит до первого токена ответа, меньше — лучше.")]
-SUBS = {"tokens": [("tokens", "Токены на задачу"), ("tokens_total", "Всего токенов"), ("cost", "Цена задачи"), ("cost_total", "Общая стоимость")],
+SUBS = {"tokens": [("tokens", "Токены на задачу"), ("tokens_total", "Токены на весь индекс"), ("cost", "Стоимость задачи"), ("cost_total", "Стоимость всего индекса")],
         "speed": [("speed", "Скорость вывода"), ("ttft", "Задержка")]}
-SUB_NOTE = ("Цена задачи внутри подписки: часть цены тарифа, которая приходится на одну задачу при полном использовании лимита. "
-            "Полые точки — модели, для которых нет данных о подписке; они показаны по цене API.")
+SUB_NOTE = ("Стоимость задачи по тарифу: доля цены тарифа, приходящаяся на одну задачу при полном использовании лимита. "
+            "Полые точки — модели без данных по тарифам; для них расчёт по ценам API.")
 
 
 def compare(data):
@@ -122,22 +122,22 @@ def compare(data):
         sub_html += "".join(f'<button type="button" data-sub="{k}" data-for="{tab}"{" class=on" if n == 0 else ""}>{T(t)}</button>'
                             for n, (k, t) in enumerate(items))
     price = "" if not data.get("subs") else (
-        f'<span class="cmp-seg cmp-price"><button type="button" data-price="api">{T("По API")}</button>'
-        f'<button type="button" data-price="sub" class=on>{T("По подписке")}</button></span>'
-        f'<span class="cmp-seg cmp-tier"><button type="button" data-tier="basic" class=on>{T("Тариф $20")}</button>'
-        f'<button type="button" data-tier="top">{T("Тариф $100+")}</button></span>')
+        f'<span class="cmp-seg cmp-price"><button type="button" data-price="sub" class=on>{T("Подписка")}</button>'
+        f'<button type="button" data-price="api">{T("API")}</button></span>'
+        f'<span class="cmp-seg cmp-tier"><button type="button" data-tier="basic" class=on>{T("Базовый · $20")}</button>'
+        f'<button type="button" data-tier="top">{T("Расширенный · $100+")}</button></span>')
     colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)
     return (f'<div class="cmp" data-colors="{colors}">'
             f'<div class="cmp-box"><div class="cmp-tabs">{tab_html}</div>'
             f'<div class="cmp-bar"><div class="cmp-subs" hidden>{sub_html}</div>'
-            f'<div class="cmp-ctl">{price}<span class="cmp-seg"><button type="button" data-scale="log" class=on>{T("Лог")}</button>'
-            f'<button type="button" data-scale="lin">{T("Линейная")}</button></span>'
-            f'<label class="cmp-par"><input type="checkbox" checked> {T("Линия выгодности")}</label></div></div>'
+            f'<div class="cmp-ctl">{price}<span class="cmp-seg"><button type="button" data-scale="log" class=on>{T("Лог. шкала")}</button>'
+            f'<button type="button" data-scale="lin">{T("Линейная шкала")}</button></span>'
+            f'<label class="cmp-par"><input type="checkbox" checked> {T("Граница эффективности")}</label></div></div>'
             f'<p class="cmp-note" data-sub-note="{html.escape(T(SUB_NOTE))}">{html.escape(T(tabs[0][3]))}</p>'
-            f'<div class="cmp-wrap"><div class="cmp-main"><div class="cmp-plot"><p class="cmp-load">{T("Загружаем данные…")}</p></div><div class="cmp-best"></div></div>'
+            f'<div class="cmp-wrap"><div class="cmp-main"><div class="cmp-plot"><p class="cmp-load">{T("Загрузка данных…")}</p></div><div class="cmp-best"></div></div>'
             f'<aside class="cmp-side"><div class="cmp-side-h"><b>{T("Модели")}</b><span class="cmp-count"></span></div>'
             f'<input class="cmp-q" type="search" placeholder="{T("Найти модель")}" aria-label="{T("Найти модель")}">'
-            f'<div class="cmp-quick"><button type="button" data-q="top">{T("Топ-12")}</button><button type="button" data-q="none">{T("Снять все")}</button></div>'
+            f'<div class="cmp-quick"><button type="button" data-q="top">{T("Топ-12")}</button><button type="button" data-q="none">{T("Сбросить выбор")}</button></div>'
             f'<label class="cmp-eff"><input type="checkbox" checked> {T("Все уровни размышлений")}</label>'
             f'<div class="cmp-list"></div></aside></div></div></div>')
 
@@ -223,7 +223,7 @@ def subscriptions(data):
     for pv in cfg["providers"]:
         dot = (f'<img class="pl-lg" src="{BASE}logos/{pv["logo"]}" width="22" height="22" alt="">' if pv.get("logo")
                else f'<i style="background:{pv["color"]}"></i>')
-        rows.append(f'<tr class="pl-h"><th>{dot}{pv["name"]}</th><th>{T("$/мес")}</th><th>{T("API-эквивалент/мес")}</th><th>{T("× цены")}</th></tr>')
+        rows.append(f'<tr class="pl-h"><th>{dot}{pv["name"]}</th><th>{T("Цена, $/мес")}</th><th>{T("Эквивалент API, $/мес")}</th><th>{T("Кратность к цене")}</th></tr>')
         for pl in pv["plans"]:
             usd, star = pv["budget"] * pl["x"], "**" if pl.get("rough") else "*" if pl.get("unofficial") else ""
             marks.add(star)
@@ -277,10 +277,10 @@ def subscriptions(data):
     summary = f'<div class="pl-wrap"><table class="pl pl-sum"><tbody>{"".join(rows)}</tbody></table></div>'
     foot = []
     if "*" in marks:
-        foot.append(T("* Множители Pro неофициальные."))
+        foot.append(T("* Множители Pro — неофициальные оценки."))
     if "**" in marks:
-        foot.append(T("** Для Go данных почти нет, это грубая оценка."))
-    names = [T("Сколько дают")] + [f'{pv["name"]} {T("по моделям")}' for pv in cfg["providers"]]
+        foot.append(T("** По тарифу Go данных недостаточно; оценка приблизительная."))
+    names = [T("Объём использования")] + [f'{T("Лимиты")} {pv["name"]}' for pv in cfg["providers"]]
     caps = [T("API-эквивалент — сколько стоила бы та же работа по ценам API.") + " " + " ".join(foot)] + [
         T("Ответов агента в месяц: один ответ — один ход агента в Claude Code или Codex, в обычном чате сообщений получится больше. "
           "Числа пересчитываются каждый день по текущим ценам моделей.")] * len(tables)
@@ -291,17 +291,17 @@ def subscriptions(data):
     return tabs, body
 
 
-RT = [("score", "Интеллект", [("score", "")],
+RT = [("score", "Индекс интеллекта", [("score", "")],
        "Общий индекс: 10 тестов на агентные задачи, программирование, знания и научное мышление."),
-      ("know", "Надёжность знаний", [("hall", "Галлюцинации"), ("acc", "Точность"), ("omni", "Итог")],
+      ("know", "Надёжность знаний", [("hall", "Галлюцинации"), ("acc", "Точность"), ("omni", "Итоговый балл")],
        "Вопросы на знания: за верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль."),
-      ("field", "По сферам", [("fin", "Финансы и учёт"), ("ops", "Стратегия и операции"), ("law", "Право"),
+      ("field", "Отраслевые индексы", [("fin", "Финансы и учёт"), ("ops", "Стратегия и операции"), ("law", "Право"),
                               ("med", "Медицина"), ("eng", "Инженерия"), ("eco", "Экономика")],
-       "Как модель справляется с рабочими задачами в отдельной сфере. Больше — лучше.")]
+       "Результаты модели на рабочих задачах отдельной отрасли. Больше — лучше.")]
 
 
-VALUE_NOTE = ("Какая модель выгоднее. Наведите на точку или столбец, чтобы увидеть подробности, справа можно выбрать модели "
-              "и уровни размышлений. Цена задачи — средняя стоимость одной задачи из рейтинга по ценам API.")
+VALUE_NOTE = ("Наведите курсор на точку или столбец, чтобы увидеть подробности; справа можно выбрать модели "
+              "и уровни размышлений. Стоимость задачи рассчитана для одной задачи из рейтинга — по тарифам подписки или по ценам API.")
 
 
 def rating_tabs(data, value=False):
@@ -310,7 +310,7 @@ def rating_tabs(data, value=False):
     tabs = [(i, t, [s for s in subs if has(s[0])], note) for i, t, subs, note in RT]
     tabs = [t for t in tabs if t[2]]
     if value:
-        tabs.append(("value", T("Цена и выгода"), [], VALUE_NOTE))
+        tabs.append(("value", T("Стоимость и эффективность"), [], VALUE_NOTE))
     order = ["score", "field", "value", "know"]
     tabs.sort(key=lambda t: order.index(t[0]))
     if len(tabs) < 2:
@@ -322,7 +322,7 @@ def rating_tabs(data, value=False):
     dl = ('<svg class="dli" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">'
           '<path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.42l2.3 2.3V4a1 1 0 0 1 1-1z"/>'
           '<path fill="currentColor" d="M4 15a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z"/></svg>')
-    out.append(f'<button type="button" class="rt-dl" title="{T("Скачать картинку со ссылкой на источник")}">{dl}{T("Скачать картинку")}</button></div>')
+    out.append(f'<button type="button" class="rt-dl" title="{T("Скачать изображение с указанием источника")}">{dl}{T("Скачать изображение")}</button></div>')
     for i, t, subs, note in tabs:
         if len(subs) > 1:
             out.append(f'<div class="rt-subs" data-for="{i}" hidden>' + "".join(
@@ -352,20 +352,20 @@ def tag_links(body):
 
 
 UI = {"locale": "ru-RU", "sec": " с", "min": " мин", "hour": " ч", "k": " тыс.", "M": " млн", "B": " млрд",
-      "level": "уровень ", "score": "Интеллект", "cost": "Цена задачи", "cost_total": "Общая стоимость",
-      "time": "Время на задачу", "tokens": "Токены на задачу", "tokens_total": "Всего токенов", "axisY": "↑ Интеллект",
-      "speed": "Скорость вывода", "ttft": "Задержка", "tps": " ток/с", "subCost": "Цена задачи по подписке",
-      "plan": "Тариф", "apiPrice": "нет данных о подписке, по цене API", "notInPlan": "не входит в тариф, по цене API", "nearFree": "≈ 0",
+      "level": "уровень ", "score": "Индекс интеллекта", "cost": "Стоимость задачи", "cost_total": "Стоимость всего индекса",
+      "time": "Время на задачу", "tokens": "Токены на задачу", "tokens_total": "Токены на весь индекс", "axisY": "↑ Индекс интеллекта",
+      "speed": "Скорость вывода", "ttft": "Задержка", "tps": " ток/с", "subCost": "Стоимость задачи по тарифу",
+      "plan": "Тариф", "apiPrice": "нет данных по тарифу; расчёт по ценам API", "notInPlan": "не входит в тариф; расчёт по ценам API", "nearFree": "≈ 0",
       "pick": "Выберите модели в списке справа.", "noData": "Не удалось загрузить данные. Обновите страницу.",
       "capScore": "Топ-{n} моделей, баллы из 100", "capOmni": "Итоговый балл от −100 до 100",
-      "capAcc": "Доля верных ответов", "capHall": "Доля выдуманных ответов, меньше — лучше", "capField": "Баллы из 100",
+      "capAcc": "Доля верных ответов", "capHall": "Доля галлюцинаций, меньше — лучше", "capField": "Баллы из 100",
       "noteOmni": "За верный ответ балл начисляется, за выдуманный — вычитается, за ответ «не знаю» — ноль. Значение ниже нуля означает, что модель чаще выдумывает ответ, чем отвечает верно.",
       "noteAcc": "Сколько вопросов на знания модель ответила верно. Больше — лучше.",
       "noteHall": "Как часто модель выдумывает ответ вместо ответа «не знаю». Меньше — лучше.",
-      "bestCost": "Самые выгодные: ", "bestTime": "Самые быстрые для своего уровня: ",
+      "bestCost": "Оптимальные по стоимости: ", "bestTime": "Самые быстрые в своём классе: ",
       "bestHint": ". Наведите курсор на точку, чтобы увидеть цену и уровень размышлений.",
       "of": " из ", "showAll": "Показать все ", "collapse": "Свернуть", "preparing": "Подготовка…",
-      "nothing": "Ничего не найдено", "ratingTitle": "Рейтинг моделей", "valueTitle": "Какая модель выгоднее",
+      "nothing": "Ничего не найдено", "ratingTitle": "Рейтинг моделей", "valueTitle": "Стоимость и эффективность моделей",
       "credit1": "Источник: Artificial Analysis · artificialanalysis.ai",
       "credit2": "Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide"}
 
