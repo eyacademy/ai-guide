@@ -122,13 +122,21 @@ SHORT = {"Агенты в рабочих чатах команды": "В чат�
          "Свой стек на сервере": "Свой стек", "Запуск на своём компьютере": "На компьютере", "Дообучение моделей": "Дообучение"}
 
 
+def short_label(heading):
+    """Headings arrive already translated, so match the short label in the same language."""
+    for ru, short in SHORT.items():
+        if T(ru) == heading:
+            return T(short)
+    return heading
+
+
 def tabify(body):
     """Turn a run of h3 + caption + cards into one framed block with a tab per subsection."""
     tabs = []
     for part in [x for x in re.split(r"(?=<h3>)", body) if x.strip()]:
         m = re.match(r'<h3>(.*?)</h3>(?:<p class="cap">(.*?)</p>)?', part, re.S)
         tabs.append((m.group(1), m.group(2), part[m.end():]))
-    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{T(SHORT.get(t, t))}</button>' for i, (t, _, _) in enumerate(tabs))
+    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{short_label(t)}</button>' for i, (t, _, _) in enumerate(tabs))
     panels = "".join(f'<div class="pl-panel"{" hidden" if i else ""}>' + (f'<p class="pcap">{c}</p>' if c else "") + b + "</div>"
                      for i, (_, c, b) in enumerate(tabs))
     return f'<div class="pl-box"><div class="pl-tabs">{btns}</div>{panels}</div>'
