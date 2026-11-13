@@ -1,0 +1,222 @@
+{
+ "_help": "AA-Omniscience по сайту Artificial Analysis. Используется, пока API не отдаёт эти поля (нужен Pro-ключ). omni — итоговый балл от −100 до 100, acc — точность, %, hall — доля галлюцинаций, %, меньше — лучше.",
+ "as_of": "2026-11-13",
+ "models": [
+  {
+   "name": "Claude Fable 5.2",
+   "effort": "max",
+   "creator": "Anthropic",
+   "omni": 67,
+   "acc": 79,
+   "hall": 59
+  },
+  {
+   "name": "Gemini 4 Carbon",
+   "effort": "high",
+   "creator": "Google",
+   "omni": 54,
+   "acc": 58,
+   "hall": 11
+  },
+  {
+   "name": "Claude Opus 5.5",
+   "effort": "max",
+   "creator": "Anthropic",
+   "omni": 48,
+   "acc": 66,
+   "hall": 50
+  },
+  {
+   "name": "Gemini 4 Hydrogen",
+   "effort": "xhigh",
+   "creator": "Google",
+   "omni": 46,
+   "acc": 50,
+   "hall": 8
+  },
+  {
+   "name": "GPT-6 Astra",
+   "effort": "max",
+   "creator": "OpenAI",
+   "omni": 42,
+   "acc": 62,
+   "hall": 50
+  },
+  {
+   "name": "GPT-6.1 Sol",
+   "effort": "max",
+   "creator": "OpenAI",
+   "omni": 42,
+   "acc": 62,
+   "hall": 52
+  },
+  {
+   "name": "Grok 4.7",
+   "effort": "xhigh",
+   "creator": "SpaceXAI",
+   "omni": 31,
+   "acc": 43,
+   "hall": 20
+  },
+  {
+   "name": "Muse Wonder Full",
+   "effort": "max",
+   "creator": "Meta",
+   "omni": 31,
+   "acc": 41,
+   "hall": 18
+  },
+  {
+   "name": "Claude Sonnet 5.5",
+   "effort": "max",
+   "creator": "Anthropic",
+   "omni": 30,
+   "acc": 51,
+   "hall": 43
+  },
+  {
+   "name": "Kimi K3.1 Pro",
+   "effort": "",
+   "creator": "Kimi",
+   "omni": 30,
+   "acc": 49,
+   "hall": 37
+  },
+  {
+   "name": "GPT-6.1 Terra",
+   "effort": "max",
+   "creator": "OpenAI",
+   "omni": 30,
+   "acc": 48,
+   "hall": 35
+  },
+  {
+   "name": "Muse Wonder",
+   "effort": "max",
+   "creator": "Meta",
+   "omni": 25,
+   "acc": 38,
+   "hall": 21
+  },
+  {
+   "name": "Inkling 2 Small",
+   "effort": "",
+   "creator": "Thinking Machines",
+   "omni": 16,
+   "acc": 34,
+   "hall": 27
+  },
+  {
+   "name": "Claude Haiku 5.5",
+   "effort": "max",
+   "creator": "Anthropic",
+   "omni": 12,
+   "acc": 35,
+   "hall": 34
+  },
+  {
+   "name": "Qwen3.8 Max",
+   "effort": "0902",
+   "creator": "Alibaba",
+   "omni": 10,
+   "acc": 30,
+   "hall": 27
+  },
+  {
+   "name": "Muse Ember",
+   "effort": "max",
+   "creator": "Meta",
+   "omni": 7,
+   "acc": 21,
+   "hall": 17
+  },
+  {
+   "name": "GLM-5.3",
+   "effort": "max",
+   "creator": "Z AI",
+   "omni": 6,
+   "acc": 32,
+   "hall": 39
+  },
+  {
+   "name": "Tencent Hy4",
+   "effort": "",
+   "creator": "Tencent",
+   "omni": 5,
+   "acc": 50,
+   "hall": 89
+  },
+  {
+   "name": "Mistral Large 4",
+   "effort": "high",
+   "creator": "Mistral",
+   "omni": 5,
+   "acc": 26,
+   "hall": 28
+  },
+  {
+   "name": "Beam 1.0",
+   "effort": "",
+   "creator": "Beam",
+   "omni": 2,
+   "acc": 31,
+   "hall": 41
+  },
+  {
+   "name": "DeepSeek V4.1 Flash 1017",
+   "effort": "max",
+   "creator": "DeepSeek",
+   "omni": 1,
+   "acc": 40,
+   "hall": 64
+  },
+  {
+   "name": "Ling 3.1 Flash 1019",
+   "effort": "",
+   "creator": "InclusionAI",
+   "omni": 0,
+   "acc": 27,
+   "hall": 36
+  },
+  {
+   "name": "Nemotron 3.5 Super VL",
+   "effort": "",
+   "creator": "NVIDIA",
+   "omni": -3,
+   "acc": 21,
+   "hall": 30
+  },
+  {
+   "name": "MiMo-V2.6-Pro",
+   "effort": "",
+   "creator": "Xiaomi",
+   "omni": -4,
+   "acc": 35,
+   "hall": 60
+  },
+  {
+   "name": "K2 Horizon 375B A23B",
+   "effort": "",
+   "creator": "MBZUAI",
+   "omni": -5,
+   "acc": 19,
+   "hall": 29
+  },
+  {
+   "name": "Qwen3.8 27B",
+   "effort": "xhigh",
+   "creator": "Alibaba",
+   "omni": -6,
+   "acc": 17,
+   "hall": 29
+  },
+  {
+   "name": "GPT-6 Luna",
+   "effort": "max",
+   "creator": "OpenAI",
+   "omni": -8,
+   "acc": 40,
+   "hall": 79
+  }
+ ]
+}

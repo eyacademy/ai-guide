@@ -197,7 +197,7 @@ def subscriptions(data):
 
 RT = [("score", "Интеллект", [("score", "")],
        "Общий индекс: 10 тестов на агентные задачи, программирование, знания и научное мышление."),
-      ("know", "Надёжность знаний", [("omni", "Итог"), ("acc", "Точность"), ("hall", "Галлюцинации")],
+      ("know", "Надёжность знаний", [("hall", "Галлюцинации"), ("acc", "Точность"), ("omni", "Итог")],
        "Вопросы на знания: за верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль."),
       ("field", "По сферам", [("fin", "Финансы и учёт"), ("ops", "Стратегия и операции"), ("law", "Право"),
                               ("med", "Медицина"), ("eng", "Инженерия"), ("eco", "Экономика")],
@@ -229,6 +229,14 @@ def h3_sub(t, cap):
 
 
 data = load_data()
+# Knowledge reliability comes from the API with a Pro key; until then from src/omniscience.json.
+data["bench"] = [m for m in data.get("bench") or [] if not m.get("manual")]
+data.pop("knowledge_note", None)
+if sum(1 for m in data["bench"] if m.get("omni") is not None) < 5:
+    manual = json.load(open(os.path.join(SRC, "omniscience.json"), encoding="utf-8"))
+    data["bench"].extend(dict(m, manual=True) for m in manual["models"])
+    d0 = datetime.fromisoformat(manual["as_of"])
+    data["knowledge_note"] = f"Данные на {d0.day} {MONTHS[d0.month - 1]} {d0.year}"
 data["logos"] = LOGOS
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)

@@ -310,6 +310,7 @@ function initRating(){
   if(!rt || rt.getAttribute("data-on")) return;
   rt.setAttribute("data-on", "1");
   var chart = rt.parentNode, ol = chart.querySelector(".bars"), legend = chart.querySelector(".legend"), cap = chart.querySelector(".rt-cap");
+  var dateEl = chart.querySelector(".rt-date"), dateText = dateEl ? dateEl.textContent : "";
   var note = rt.querySelector(".rt-note"), colors = {};
   try { colors = JSON.parse(rt.getAttribute("data-colors")); } catch(e){}
   var tab = "score", metric = "score", tabNote = note.textContent;
@@ -331,6 +332,7 @@ function initRating(){
     legend.innerHTML = leg.join("");
     cap.textContent = metric==="score" ? "Топ-"+list.length+" моделей, баллы из 100" : RT_CAP[metric];
     note.textContent = RT_NOTE[metric] || tabNote;
+    if(dateEl) dateEl.textContent = (tab==="know" && d.knowledge_note) ? d.knowledge_note : dateText;
   }
   function show(){
     var subs = rt.querySelectorAll(".rt-subs");

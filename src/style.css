@@ -298,3 +298,7 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .vd .links{margin-top:0}
 #eyai .tl{width:16px;height:16px;object-fit:contain;vertical-align:-3px;margin-right:7px}
 @media (max-width:900px){#eyai .vd{grid-template-columns:1fr}}
+#eyai .pl-k td{text-align:left;font-size:14.5px}
+#eyai .pl-k td:first-child{white-space:nowrap}
+#eyai .pl-k .pl-h th{text-align:left}
+#eyai .pl-k .pl-h th:first-child{color:var(--ink2)!important;font-weight:400!important}

@@ -98,7 +98,7 @@ out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' 
        '<div class="w">']
 
 # 2. rating
-rating = ('<div class="chart">{RATING_TABS}<div class="chart-top"><span class="rt-cap">Топ-{CHART_N} моделей, баллы из 100</span><span>{CHART_DATE}</span></div>'
+rating = ('<div class="chart">{RATING_TABS}<div class="chart-top"><span class="rt-cap">Топ-{CHART_N} моделей, баллы из 100</span><span class="rt-date">{CHART_DATE}</span></div>'
           '<ol class="bars">{CHART_BARS}</ol><div class="legend">{CHART_LEGEND}</div></div>'
           '<p class="src">Источник: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>'
           '{COMPARE}')
@@ -138,20 +138,18 @@ v += vendor("Microsoft", "Copilot",
              ("Личный Copilot", "https://copilot.microsoft.com", "copilot.microsoft.com")])
 llm = v
 # Subscriptions: kinds, value, per-model limits and privacy in one tabbed block.
-kinds = ('<div class="explain">'
-        '<div class="box"><h3>Личная подписка</h3><p>Free, Plus, Pro и аналоги. ChatGPT, Claude и Gemini по умолчанию могут использовать вашу переписку для обучения моделей. Отключить можно в настройках, но это делает каждый сотрудник сам, и компания этого не видит.</p>'
-        '<p>Нет администратора, общего счёта и контроля доступа: если сотрудник уходит, его чаты и файлы уходят вместе с его аккаунтом.</p></div>'
-        '<div class="box"><h3>Бизнес-подписка</h3><p>ChatGPT Business, Claude Team, Google Workspace, Microsoft 365 Copilot. Переписка и файлы не используются для обучения моделей, так же как при работе через API.</p>'
-        '<p>Администратор управляет пользователями и сроком хранения данных, вход через корпоративный аккаунт (SSO), один счёт на компанию. Подключить можно от 2 пользователей.</p></div>'
-        '</div>'
-         + '<div class="tbl-wrap" style="margin-top:12px"><table class="tbl"><thead><tr><th>Сервис</th><th>Личная подписка</th><th>Обучение на данных</th><th>Бизнес-подписка</th><th>Обучение на данных</th></tr></thead><tbody>'
-        "<tr><td>ChatGPT</td><td>Free, Go $8, Plus $20, Pro от $100</td><td>Да, можно отключить</td><td>Business $20–25</td><td>Нет</td></tr>"
-        "<tr><td>Claude</td><td>Free, Pro $20, Max $100–200</td><td>По выбору пользователя, при согласии хранение до 5 лет</td><td>Team $20–25</td><td>Нет</td></tr>"
-        "<tr><td>Gemini</td><td>Free, AI Plus $5, AI Pro $20, Ultra от $100</td><td>Да, можно отключить</td><td>Google Workspace от $7, Gemini включён</td><td>Нет</td></tr>"
-        "<tr><td>Copilot</td><td>Бесплатно, Microsoft 365 Personal $10, Premium $20</td><td>В новом приложении нет</td><td>Copilot Chat бесплатно с M365, Microsoft 365 Copilot $21–30 + лицензия M365</td><td>Нет</td></tr>"
-        "<tr><td>API</td><td colspan=\"2\">Оплата за объём запросов, без подписки</td><td colspan=\"2\">Не обучают по умолчанию. Исключение: бесплатный уровень Gemini API</td></tr>"
-        "</tbody></table></div>"
-        '<p class="src">Цены за пользователя в месяц в долларах США. У бизнес-тарифов меньшая цена при оплате за год.</p>')
+# One table: the two kinds of plans side by side, no repeated cards.
+PLAN_ROWS = [("ChatGPT", "Free, Go $8, Plus $20, Pro от $100", "Да, можно отключить", "Business $20–25"),
+             ("Claude", "Free, Pro $20, Max $100, Ultra $200", "По выбору пользователя, при согласии хранение до 5 лет", "Team $20–25"),
+             ("Gemini", "Free, AI Plus $5, AI Pro $20, Ultra от $100", "Да, можно отключить", "Google Workspace от $7, Gemini включён"),
+             ("Copilot", "Бесплатно, Microsoft 365 Personal $10, Premium $20", "В новом приложении нет",
+              "Copilot Chat бесплатно с M365, Microsoft 365 Copilot $21–30 + лицензия M365")]
+kinds = ('<p class="pcap">Личная подписка может обучать модели на вашей переписке, пока это не отключить, и не даёт компании контроля. '
+         'Бизнес-подписка на данных не обучает, даёт администратора, вход через корпоративный аккаунт и один счёт, подключается от 2 пользователей.</p>'
+         '<div class="pl-wrap"><table class="pl pl-k"><tbody><tr class="pl-h"><th>Сервис</th><th>Личная подписка</th><th>Обучение на данных</th><th>Бизнес-подписка</th></tr>'
+         + "".join(f'<tr><td><b>{logo(n, "pl-lg", 16)}{n}</b></td><td>{a}</td><td>{t}</td><td>{b}</td></tr>' for n, a, t, b in PLAN_ROWS)
+         + '<tr><td><b>API</b></td><td>Оплата за объём запросов, без подписки</td><td>Не обучают по умолчанию, кроме бесплатного уровня Gemini API</td><td>—</td></tr>'
+         '</tbody></table></div><p class="src">Цены за пользователя в месяц в долларах США. У бизнес-тарифов меньшая цена при оплате за год.</p>')
 privacy = '<div class="grid">' + "".join(f'<div class="card"><b>{logo(a)}{a}</b><p>{t}</p></div>' for a, t in [
     ("ChatGPT", "Settings → Data controls → выключить «Improve the model for everyone». Временные чаты не используются для обучения."),
     ("Claude", "Settings → Privacy → выключить «Help improve Claude». Чаты в режиме инкогнито не используются для обучения."),
