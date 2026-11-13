@@ -128,7 +128,7 @@ def subscriptions(data):
     for pv in cfg["providers"]:
         dot = (f'<img class="pl-lg" src="{BASE}logos/{pv["logo"]}" width="22" height="22" alt="">' if pv.get("logo")
                else f'<i style="background:{pv["color"]}"></i>')
-        rows.append(f'<tr class="pl-h"><th colspan="4">{dot}{pv["name"]}</th></tr>')
+        rows.append(f'<tr class="pl-h"><th>{dot}{pv["name"]}</th><th>$/мес</th><th>API-эквивалент/мес</th><th>× цены</th></tr>')
         for pl in pv["plans"]:
             usd, star = pv["budget"] * pl["x"], "**" if pl.get("rough") else "*" if pl.get("unofficial") else ""
             marks.add(star)
@@ -178,20 +178,19 @@ def subscriptions(data):
             body.append(f'<tr><td><b>{title}</b><small>{m["role"]}</small></td>{"".join(cells)}</tr>')
         tables.append(f'<div class="pl-wrap"><table class="pl pl-m"><thead><tr><th class="pl-p">{dot}{pv["name"]}</th>{head}</tr></thead>'
                       f'<tbody>{"".join(body)}</tbody></table></div>')
-    summary = ('<div class="pl-wrap"><table class="pl pl-sum"><thead><tr><th></th><th>$/мес</th><th>API-эквивалент/мес</th><th>× цены</th></tr></thead>'
-               f'<tbody>{"".join(rows)}</tbody></table></div>')
+    summary = f'<div class="pl-wrap"><table class="pl pl-sum"><tbody>{"".join(rows)}</tbody></table></div>'
     foot = []
     if "*" in marks:
         foot.append("* Множители Pro неофициальные.")
     if "**" in marks:
         foot.append("** Для Go данных почти нет, это грубая оценка.")
     names = ["Подписка и API"] + [f'{pv["name"]} по моделям' for pv in cfg["providers"]]
-    caps = ["Сколько стоила бы та же работа по ценам API. " + " ".join(foot)] + [
-        f"Сколько ответов агента в месяц. Ответ — один ход агента в Claude Code или Codex, в обычном чате сообщений получится больше. "
-        f"Числа пересчитываются каждый день по текущим ценам моделей."] * len(tables)
+    caps = ["API-эквивалент — сколько стоила бы та же работа по ценам API. " + " ".join(foot)] + [
+        "Ответов агента в месяц: один ответ — один ход агента в Claude Code или Codex, в обычном чате сообщений получится больше. "
+        "Числа пересчитываются каждый день по текущим ценам моделей."] * len(tables)
     panels = [summary] + tables
     tabs = "".join(f'<button type="button" data-p="{i}"{" class=on" if i == 0 else ""}>{n}</button>' for i, n in enumerate(names))
-    body = "".join(f'<div class="pl-panel"{" hidden" if i else ""}><p class="cap">{caps[i]}</p>{p}</div>' for i, p in enumerate(panels))
+    body = "".join(f'<div class="pl-panel"{" hidden" if i else ""}>{p}<p class="src">{caps[i]}</p></div>' for i, p in enumerate(panels))
     return (h3_sub("Сколько даёт подписка", f"Оценки по замерам пользователей на {cfg['as_of']}: компании не публикуют лимиты в долларах.")
             + f'<div class="pl-box"><div class="pl-tabs">{tabs}</div>{body}</div>')
 
