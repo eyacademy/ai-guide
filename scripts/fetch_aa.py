@@ -75,14 +75,14 @@ def fetch():
         if (m.get("release_date") or "") >= year_ago:
             variants.append({"family": name, "effort": effort, "creator": creator, "score": round(score, 1), **metrics(m)})
         if name not in best or score > best[name]["score"]:
-            best[name] = {"name": name, "creator": creator, "score": round(score),
+            best[name] = {"name": name, "creator": creator, "score": round(score), "effort": effort,
                           "released": m.get("release_date") or "", **metrics(m)}
     current = sorted(latest(best.values()), key=lambda x: -x["score"])
     by_creator = {}
     for m in current:
         if m["released"] >= year_ago:
             by_creator.setdefault(m["creator"], []).append(m["name"])
-    top = [{k: m[k] for k in ("name", "creator", "score")} for m in current[:20]]
+    top = [{k: m[k] for k in ("name", "creator", "score", "effort")} for m in current[:20]]
     if len(top) < 5:
         raise ValueError("too few models")
     # Chart picker: every variant from the last year; the top current lines are ticked by default.

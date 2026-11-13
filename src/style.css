@@ -65,16 +65,20 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .src{font-size:13px;color:var(--ink2);margin-top:12px}
 #eyai .src a{text-decoration:underline}
 
-/* rating as vertical columns on wide screens */
+/* rating as vertical columns on wide screens, labelled like Artificial Analysis */
+#eyai .bar .lo{display:none}
+#eyai .lgl{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--c);color:#fff;font-size:11px;font-weight:700}
 @media (min-width:701px){
-#eyai .bars{display:flex;align-items:stretch;gap:6px;height:470px}
+#eyai .bars{display:flex;align-items:stretch;gap:8px;height:560px;padding-left:44px}
 #eyai .bar{display:flex;flex-direction:column;align-items:stretch;flex:1 1 0;min-width:0;padding:0;transition:opacity .15s;cursor:default}
 #eyai .bars:hover .bar{opacity:.4}
 #eyai .bars .bar:hover{opacity:1}
-#eyai .bar .t{order:1;flex:1;height:auto;background:none;display:flex;align-items:flex-end}
-#eyai .bar .f{width:100%;height:var(--w);min-width:0;padding:7px 0 0;align-items:flex-start;justify-content:center;transition:height .8s ease}
-#eyai .bar .i{order:2;text-align:center;padding-top:6px}
-#eyai .bar .n{order:3;height:150px;writing-mode:vertical-rl;transform:rotate(180deg);text-align:right;font-size:13.5px;line-height:1.15;align-self:center;padding:4px 0}
+#eyai .bar .t{order:1;flex:1;height:auto;background:none;display:flex;align-items:flex-end;border-bottom:1px solid var(--line)}
+#eyai .bar .f{width:100%;height:var(--w);min-width:0;padding:10px 0 0;align-items:flex-start;justify-content:center;border-radius:3px 3px 0 0;font-size:14px;transition:height .8s ease}
+#eyai .bar .i{display:none}
+#eyai .bar .lo{order:2;display:flex;justify-content:center;align-items:center;height:34px}
+#eyai .bar .n{order:3;height:120px;position:relative;font-size:13px;line-height:1.2}
+#eyai .bar .n > span{position:absolute;right:50%;top:0;width:118px;text-align:right;transform-origin:100% 0;transform:rotate(-45deg);white-space:normal}
 #eyai .bar .n small{display:none}
 #eyai .bar:hover .n{font-weight:700}
 }
@@ -136,7 +140,6 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .cmp{margin-top:8px}
 #eyai .cmp-box{background:var(--card);border:1px solid var(--line);padding:22px 24px 20px}
 #eyai .cmp-tabs,#eyai .cmp-subs{display:flex;flex-wrap:wrap;gap:8px}
-#eyai .cmp-subs{margin-top:10px}
 #eyai .cmp-subs[hidden]{display:none}
 #eyai .cmp button{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);padding:8px 14px;cursor:pointer;border-radius:0;transition:background .15s,border-color .15s}
 #eyai .cmp-subs button{font-size:13px;padding:5px 11px;background:var(--bg)}
@@ -160,13 +163,29 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .cmp-tip span{display:flex;justify-content:space-between;gap:14px}
 #eyai .cmp-tip span i{font-style:normal;color:#c4c4cd}
 #eyai .cmp-tip span.on i,#eyai .cmp-tip span.on{color:var(--y)}
+#eyai.eyai-wait{opacity:0;animation:eyai-show 0s 2.5s forwards}
+@keyframes eyai-show{to{opacity:1}}
+#eyai .cmp-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+#eyai .cmp-bar .cmp-subs{margin-top:0}
+#eyai .cmp-ctl{display:flex;align-items:center;gap:14px;margin-left:auto;font-size:13px}
+#eyai .cmp-ctl[hidden]{display:none}
+#eyai .cmp-seg{display:inline-flex}
+#eyai .cmp .cmp-seg button{font-size:12px;padding:4px 10px;background:var(--bg)}
+#eyai .cmp .cmp-seg button + button{border-left:0}
+#eyai .cmp .cmp-seg button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+#eyai .cmp-par{display:flex;gap:6px;align-items:center;cursor:pointer}
+#eyai .cmp-par input{accent-color:#2e2e38;margin:0}
+#eyai .cmp-plot .ef{fill:var(--ink2);font-size:10px}
+#eyai .cmp-plot .gn{font-size:12px;font-weight:700}
+#eyai .cmp-plot .lgt{fill:#fff;font-size:10px;font-weight:700}
+#eyai .cmp-grp > span svg{width:11px;height:11px;vertical-align:-1px;margin-right:6px}
 #eyai .cmp-best{font-size:14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 #eyai .cmp-best:empty{display:none}
 #eyai .cmp-best b{font-weight:700}
 #eyai .cmp-wrap{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:20px;align-items:start}
 #eyai .cmp-main{min-width:0}
 #eyai .cmp-load{color:var(--ink2);font-size:14px;padding:80px 0;text-align:center}
-#eyai .cmp-side{border-left:1px solid var(--line);padding-left:16px;display:flex;flex-direction:column;gap:8px}
+#eyai .cmp-side{border-left:1px solid var(--line);padding-left:16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:calc(var(--eyai-head,84px) + 84px)}
 #eyai .cmp-side-h{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}
 #eyai .cmp-count{font-size:12px;color:var(--ink2)}
 #eyai .cmp-q{font:inherit;font-size:14px;width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:0;background:var(--card);color:var(--ink)}
@@ -174,7 +193,7 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .cmp-quick{display:flex;gap:6px}
 #eyai .cmp .cmp-quick button{font-size:12px;padding:4px 9px;background:var(--bg)}
 #eyai .cmp-eff{font-size:13px;display:flex;gap:6px;align-items:center;cursor:pointer}
-#eyai .cmp-list{max-height:430px;overflow-y:auto;border-top:1px solid var(--line);padding-top:4px;overscroll-behavior:contain}
+#eyai .cmp-list{max-height:min(460px,calc(100vh - 300px));overflow-y:auto;border-top:1px solid var(--line);padding-top:4px;overscroll-behavior:contain}
 #eyai .cmp-grp > span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);margin:10px 0 2px}
 #eyai .cmp-grp label{display:flex;align-items:center;gap:7px;font-size:13px;padding:3px 0;cursor:pointer;line-height:1.25}
 #eyai .cmp-grp label:hover em{text-decoration:underline}
@@ -185,7 +204,7 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .cmp-empty{font-size:13px;color:var(--ink2);padding:10px 0}
 @media (max-width:900px){
 #eyai .cmp-wrap{grid-template-columns:1fr}
-#eyai .cmp-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:14px}
+#eyai .cmp-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:14px;position:static}
 #eyai .cmp-list{max-height:260px}
 }
 @media (max-width:600px){

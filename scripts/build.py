@@ -13,6 +13,17 @@ LIGHT = {"#00c2b8", "#76b900"}
 MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
 
 
+LOGOS = json.load(open(os.path.join(SRC, "logos.json"), encoding="utf-8"))
+
+
+def logo(creator, c, size=18):
+    k = creator.lower()
+    d = next((p for n, p in LOGOS.items() if n in k), None)
+    if d:
+        return f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" aria-hidden="true"><path fill="{c}" d="{d}"/></svg>'
+    return f'<b class="lgl" style="--c:{c}">{html.escape(creator[:1].upper())}</b>'
+
+
 def color(creator):
     k = creator.lower()
     return next((c for n, c in COLORS.items() if n in k), "#9a9aa6")
@@ -30,9 +41,10 @@ def chart(data):
     top = max(m["score"] for m in models)
     bars, legend, seen = [], [], set()
     for i, m in enumerate(models, 1):
-        c, name, creator = color(m["creator"]), html.escape(m["name"]), html.escape(m["creator"])
+        c, creator = color(m["creator"]), html.escape(m["creator"])
+        name = html.escape(m["name"] + (f' ({m["effort"]})' if m.get("effort") else ""))
         w = max(8, round(m["score"] / top * 100))
-        bars.append(f'<li class="bar" title="{name} · {creator} · {m["score"]}"><span class="i">{i}</span><span class="n">{name}<small>{creator}</small></span>'
+        bars.append(f'<li class="bar" title="{name} · {creator} · {m["score"]}"><span class="i">{i}</span><span class="lo">{logo(m["creator"], c)}</span><span class="n"><span>{name}</span><small>{creator}</small></span>'
                     f'<span class="t"><span class="f{" lt" if c in LIGHT else ""}" style="--c:{c};--w:{w}%">{m["score"]}</span></span></li>')
         if m["creator"] not in seen:
             seen.add(m["creator"])
@@ -71,7 +83,11 @@ def compare(data):
             f'<h3>Какая модель выгоднее</h3><p class="cap">Наведите на точку или столбец, чтобы увидеть подробности. '
             f'Справа можно выбрать модели и уровни размышлений. Цена задачи — средняя стоимость одной задачи из рейтинга по ценам API.</p>'
             f'<div class="cmp-box"><div class="cmp-tabs">{tab_html}</div>'
-            f'<div class="cmp-subs" hidden>{sub_html}</div><p class="cmp-note">{html.escape(tabs[0][3])}</p>'
+            f'<div class="cmp-bar"><div class="cmp-subs" hidden>{sub_html}</div>'
+            f'<div class="cmp-ctl"><span class="cmp-seg"><button type="button" data-scale="log" class=on>Лог</button>'
+            f'<button type="button" data-scale="lin">Линейная</button></span>'
+            f'<label class="cmp-par"><input type="checkbox" checked> Линия выгодности</label></div></div>'
+            f'<p class="cmp-note">{html.escape(tabs[0][3])}</p>'
             f'<div class="cmp-wrap"><div class="cmp-main"><div class="cmp-plot"><p class="cmp-load">Загружаем данные…</p></div><div class="cmp-best"></div></div>'
             f'<aside class="cmp-side"><div class="cmp-side-h"><b>Модели</b><span class="cmp-count"></span></div>'
             f'<input class="cmp-q" type="search" placeholder="Найти модель" aria-label="Найти модель">'
@@ -81,6 +97,9 @@ def compare(data):
 
 
 data = load_data()
+data["logos"] = LOGOS
+os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
+json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
 body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {})})["BODY"]
 bars, legend, date = chart(data)
 body = body.replace("{COMPARE}", compare(data)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
@@ -92,7 +111,9 @@ script = f'<script src="{BASE}script.js" defer></script>\n'
 
 os.makedirs(OUT, exist_ok=True)
 open(os.path.join(OUT, "guide.html"), "w", encoding="utf-8").write(style + body)
-open(os.path.join(OUT, "tilda.html"), "w", encoding="utf-8").write(style + body + "\n" + script)
+# In Tilda the block stays hidden until script.js has swapped in the current version, so the old copy never flashes.
+open(os.path.join(OUT, "tilda.html"), "w", encoding="utf-8").write(
+    style + body.replace('<div id="eyai" ', '<div id="eyai" class="eyai-wait" ', 1) + "\n" + script)
 open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(
     '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
     '<meta name="viewport" content="width=device-width,initial-scale=1">'
