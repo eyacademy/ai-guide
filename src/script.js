@@ -341,8 +341,12 @@ function colorFrom(colors, creator){
   return "#9a9aa6";
 }
 
-/* saving a chart as a picture, with the sources named under it */
-function credit(){ return [S.credit1, S.credit2]; }
+/* saving a chart as a picture; the source is named once, at the top */
+function credit(desc){
+  // The description above most charts already names Artificial Analysis; then only the guide is credited.
+  var src = String(S.credit1).split(" \u00b7 ")[0];
+  return (/Artificial Analysis/i.test(desc || "") ? "" : src + " \u00b7 ") + S.credit2;
+}
 
 // The short description that sits above a chart, taken from the section it belongs to.
 function secLead(node){
@@ -390,45 +394,52 @@ function svgText(parent, x, y, text, opt){
 
 // The rating is drawn as HTML on the page, so the picture is built from the same numbers.
 function ratingSvg(list, caption, pct, colors, desc){
-  var W = Math.max(1100, 60 + list.length * 46), M = {l:64, r:28, b:190};
+  var W = Math.max(1100, 60 + list.length * 46), M = {l:64, r:28};
   var lines = wrapText(desc, Math.floor((W - M.l - M.r) / 7.1), 3);
-  M.t = 74 + (lines.length ? lines.length * 18 + 8 : 0) + 26;
-  var ih = 338, H = M.t + ih + M.b, iw = W - M.l - M.r, slot = iw / list.length;
+  var capY = 74 + (lines.length ? lines.length * 18 + 14 : 0);
+  var longest = Math.max.apply(0, list.map(function(m){ return String(m.name).length; }));
+  M.t = capY + 40;                                       // air between the caption and the top of the scale
+  M.b = 46 + Math.ceil(longest * 6.6 * 0.71) + 28;       // room for the slanted names, nothing under them
+  var ih = 290, H = M.t + ih + M.b, iw = W - M.l - M.r, slot = iw / list.length;
   var vals = list.map(function(m){ return m.v; });
   var pos = Math.max(0, Math.max.apply(0, vals)), neg = Math.max(0, -Math.min.apply(0, vals));
-  var pad = neg ? (pos + neg) * 0.09 : 0, max = (pos + neg + pad) || 1, zero = M.t + ih * pos / max;
+  // The scale runs to the next round value above the tallest column, as on Artificial Analysis.
+  var step = niceStep(pos + neg) || 1;
+  var hi = pos ? Math.ceil(pos * 1.06 / step) * step : 0, lo = neg ? Math.ceil(neg * 1.06 / step) * step : 0;
+  if(pos <= 100 && hi > 100) hi = 100;
+  var max = (hi + lo) || 1, zero = M.t + ih * hi / max;
   var svg = el("svg", {xmlns:NS, width:W, height:H, viewBox:"0 0 "+W+" "+H});
   el("rect", {x:0, y:0, width:W, height:H, fill:"#fff"}, svg);
   el("rect", {x:0.5, y:0.5, width:W - 1, height:H - 1, fill:"none", stroke:"#e1e1e6"}, svg);
   svgText(svg, M.l, 46, S.ratingTitle, {size:26, bold:true});
   lines.forEach(function(t, i){ svgText(svg, M.l, 74 + i * 18, t, {size:13, fill:"#747480"}); });
-  svgText(svg, M.l, M.t - 20, caption, {size:13, fill:"#747480"});
-  // Dotted scale, as on Artificial Analysis: the zero line solid, the rest dotted.
-  scaleTicks(pos, neg + pad).forEach(function(v){
+  svgText(svg, M.l, capY, caption, {size:13, fill:"#747480"});
+  svgText(svg, W - M.r, capY, credit(desc), {size:12, fill:"#9a9aa6", anchor:"end"});
+  // Dotted scale with a line at the top as the upper bound; a solid zero line only when columns go below it.
+  for(var v = -lo; v <= hi + step / 2; v += step){
     var gy = zero - v / max * ih;
-    if((!v && !neg) || gy < M.t - 1 || gy > M.t + ih + 1) return;
-    el("line", {x1:M.l, x2:W - M.r, y1:gy, y2:gy, stroke:"#e1e1e6", "stroke-dasharray": v ? "2 4" : null}, svg);
+    if(!v && !neg) continue;
+    el("line", {x1:M.l, x2:W - M.r, y1:gy, y2:gy, stroke:v ? "#dcdce2" : "#c4c4cc", "stroke-dasharray": v ? "2 4" : null}, svg);
     svgText(svg, M.l - 10, gy + 4, Math.round(v) + (pct ? "%" : ""), {size:11, fill:"#747480", anchor:"end"});
-  });
+  }
   list.forEach(function(m, i){
     var cx = M.l + slot * (i + 0.5), bw = Math.min(30, slot * 0.66);
     var h = Math.max(2, Math.abs(m.v) / max * ih), top = m.v < 0 ? zero : zero - h;
     el("rect", {x:cx - bw / 2, y:top, width:bw, height:h, fill:m.c}, svg);
-    var r = Math.round(m.v), label = (r < 0 ? "\u2212" : "") + Math.abs(r) + (pct ? "%" : "");
+    var r = Math.round(m.v), label = (r < 0 ? "−" : "") + Math.abs(r) + (pct ? "%" : "");
     svgText(svg, cx, m.v < 0 ? top + h + 15 : top - 6, label, {size:12, bold:true, anchor:"middle"});
     if(m.file) el("image", {href:BASE + "logos/" + m.file, x:cx - 10, y:M.t + ih + 10, width:20, height:20}, svg);
     svgText(svg, cx + 4, M.t + ih + 42, m.name, {size:12, anchor:"end", rotate:-45});
   });
-  el("line", {x1:M.l, x2:W - M.r, y1:H - 56, y2:H - 56, stroke:"#e1e1e6"}, svg);
-  credit().forEach(function(line, i){ svgText(svg, M.l, H - 34 + i * 16, line, {size:12, fill:"#747480"}); });
   return svg;
 }
 
 function framed(svg, title, desc){
-  // Put the title, the description and the credit around a chart that is already drawn as SVG.
+  // Put the title, the description and the credit above a chart that is already drawn as SVG.
   var box = svg.viewBox.baseVal, w = box && box.width || svg.clientWidth, h = box && box.height || svg.clientHeight;
-  var p = 24, lines = wrapText(desc, Math.floor(w / 7.1), 3);
-  var head = 44 + (lines.length ? lines.length * 17 + 12 : 0), W = w + p * 2, H = head + h + 74;
+  var p = 24, lines = wrapText(desc, Math.floor(w / 7.1), 3), cr = credit(desc);
+  var side = title.length * 11.5 + cr.length * 6.3 + 40 < w;   // the credit fits on the title line
+  var head = 44 + (lines.length ? lines.length * 17 + 12 : 0) + (side ? 0 : 18), W = w + p * 2, H = head + h + 20;
   var out = el("svg", {xmlns:NS, width:Math.round(W), height:Math.round(H), viewBox:"0 0 "+W+" "+H});
   el("rect", {x:0, y:0, width:W, height:H, fill:"#fff"}, out);
   el("rect", {x:0.5, y:0.5, width:W - 1, height:H - 1, fill:"none", stroke:"#e1e1e6"}, out);
@@ -442,8 +453,8 @@ function framed(svg, title, desc){
   out.appendChild(copy);
   svgText(out, p, 34, title, {size:20, bold:true});
   lines.forEach(function(t, i){ svgText(out, p, 56 + i * 17, t, {size:12.5, fill:"#747480"}); });
-  el("line", {x1:p, x2:W - p, y1:head + h + 18, y2:head + h + 18, stroke:"#e1e1e6"}, out);
-  credit().forEach(function(line, i){ svgText(out, p, head + h + 40 + i * 16, line, {size:12, fill:"#747480"}); });
+  if(side) svgText(out, W - p, 34, cr, {size:12, fill:"#9a9aa6", anchor:"end"});
+  else svgText(out, p, 56 + lines.length * 17, cr, {size:12, fill:"#9a9aa6"});
   return out;
 }
 
@@ -540,7 +551,8 @@ function initRating(){
       var busy = b.textContent;
       b.textContent = S.preparing; b.disabled = true;
       var plot = value && !value.hidden ? value.querySelector(".cmp-plot svg") : null;
-      var desc = plot ? note.textContent : secLead(chart);
+      var cn = plot && value.querySelector(".cmp-note");   // the open tab's own explanation, not the hover hint
+      var desc = plot ? (cn ? cn.textContent : note.textContent) : secLead(chart);
       var svg = plot ? framed(plot, S.valueTitle, desc)
         : (shown ? ratingSvg(shown, cap.textContent, metric === "acc" || metric === "hall", colors, desc) : null);
       var done = function(){ b.textContent = busy; b.disabled = false; };
