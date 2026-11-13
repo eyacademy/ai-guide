@@ -32,8 +32,8 @@ def chart(data):
     for i, m in enumerate(models, 1):
         c, name, creator = color(m["creator"]), html.escape(m["name"]), html.escape(m["creator"])
         w = max(8, round(m["score"] / top * 100))
-        bars.append(f'<li class="bar"><span class="i">{i}</span><span class="n">{name}<small>{creator}</small></span>'
-                    f'<span class="t"><span class="f{" lt" if c in LIGHT else ""}" style="--c:{c};width:{w}%">{m["score"]}</span></span></li>')
+        bars.append(f'<li class="bar" title="{name} · {creator} · {m["score"]}"><span class="i">{i}</span><span class="n">{name}<small>{creator}</small></span>'
+                    f'<span class="t"><span class="f{" lt" if c in LIGHT else ""}" style="--c:{c};--w:{w}%">{m["score"]}</span></span></li>')
         if m["creator"] not in seen:
             seen.add(m["creator"])
             legend.append(f'<span><i style="background:{c}"></i>{creator}</span>')
