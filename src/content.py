@@ -65,7 +65,9 @@ def media(kind, pattern, fallback):
     if hits:
         top = max(_ver(n) for n in hits)
         same = [n for n in hits if _ver(n) == top]
-        name = VARIANT.sub("", min(same, key=lambda n: (len(n.split()), hits.index(n))))
+        name = min(same, key=lambda n: (len(n.split()), hits.index(n)))
+        at = re.search(pattern, name, re.I)          # drop a hosting prefix: "Dreamina Seedance 2.5"
+        name = VARIANT.sub("", name[at.start():] if at else name)
     else:
         name = fallback
     if fallback and fallback in LOGO:
@@ -294,7 +296,7 @@ m += grid([
      "Видео со звуком по тексту и картинкам. Flow это студия Google для монтажа сцен.", "https://flow.google.com"),
     (retitle("Gemini Omni Flash", media("video", r"^Gemini", "Gemini Omni Flash")),
      "Создание и правка видео в диалоге: «убери человека слева», «сделай закат».", "https://deepmind.google/models/gemini-omni/"),
-    (retitle("Seedance 2.5", media("video", r"^Seedance", "Seedance 2.5")),
+    (retitle("Seedance 2.5", media("video", r"Seedance", "Seedance 2.5")),
      "Модель ByteDance: ролики до 30 секунд. Доступна в Dreamina (CapCut) и Higgsfield.", "https://dreamina.capcut.com"),
     ("Kling", f"Реалистичное видео и «оживление» фото. Актуальная модель — {media('video', r'^Kling', 'Kling 3.0')}.", "https://kling.ai"),
     (retitle("Wan 3.0", media("video", r"^Wan", "Wan 3.0")),
