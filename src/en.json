@@ -352,6 +352,6 @@
  "Скорость вывода: больше — лучше. Задержка до первого токена: меньше — лучше.": "Output speed: higher is better. Latency to first token: lower is better.",
  "Стоимость задачи по тарифу при полном использовании лимита. Полые точки — по ценам API.": "Cost per task on a plan, with the full usage limit used. Hollow points are at API prices.",
  "Стоимость одной задачи из рейтинга — по тарифам подписки или по ценам API.": "Cost of one task from the index, at subscription or API prices.",
- "Среднее время на одну задачу из рейтинга. Меньше — лучше.": "Average time per task from the index. Lower is better.",
- "Граница эффективности: ": "Efficiency frontier: "
+ "Граница эффективности: ": "Efficiency frontier: ",
+ "Выше — умнее, левее — быстрее. Пунктир — граница эффективности.": "Higher means smarter, further left means faster. The dashed line is the efficiency frontier."
 }

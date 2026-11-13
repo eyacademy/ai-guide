@@ -433,12 +433,14 @@ function ratingSvg(list, caption, pct, colors, desc){
   return svg;
 }
 
-function framed(svg, title, desc){
+function framed(svg, title, desc, foot){
   // Put the title, the description and the credit above a chart that is already drawn as SVG.
   var box = svg.viewBox.baseVal, w = box && box.width || svg.clientWidth, h = box && box.height || svg.clientHeight;
   var p = 24, lines = wrapText(desc, Math.floor(w / 7.1), 3), cr = credit(desc);
   var side = title.length * 11.5 + cr.length * 6.3 + 40 < w;   // the credit fits on the title line
-  var head = 44 + (lines.length ? lines.length * 17 + 12 : 0) + (side ? 0 : 18), W = w + p * 2, H = head + h + 20;
+  var feet = wrapText(foot, Math.floor(w / 7.4), 3);
+  var head = 44 + (lines.length ? lines.length * 17 + 12 : 0) + (side ? 0 : 18), W = w + p * 2;
+  var H = head + h + (feet.length ? 24 + feet.length * 18 : 20);
   var out = el("svg", {xmlns:NS, width:Math.round(W), height:Math.round(H), viewBox:"0 0 "+W+" "+H});
   el("rect", {x:0, y:0, width:W, height:H, fill:"#fff"}, out);
   el("rect", {x:0.5, y:0.5, width:W - 1, height:H - 1, fill:"none", stroke:"#e1e1e6"}, out);
@@ -452,6 +454,7 @@ function framed(svg, title, desc){
   out.appendChild(copy);
   svgText(out, p, 34, title, {size:20, bold:true});
   lines.forEach(function(t, i){ svgText(out, p, 56 + i * 17, t, {size:12.5, fill:"#747480"}); });
+  feet.forEach(function(t, i){ svgText(out, p, head + h + 26 + i * 18, t, {size:13}); });
   if(side) svgText(out, W - p, 34, cr, {size:12, fill:"#9a9aa6", anchor:"end"});
   else svgText(out, p, 56 + lines.length * 17, cr, {size:12, fill:"#9a9aa6"});
   return out;
@@ -552,7 +555,8 @@ function initRating(){
       var plot = value && !value.hidden ? value.querySelector(".cmp-plot svg") : null;
       var cn = plot && value.querySelector(".cmp-note");   // the open tab's own explanation, not the hover hint
       var desc = plot ? (cn ? cn.textContent : note.textContent) : secLead(chart);
-      var svg = plot ? framed(plot, S.valueTitle, desc)
+      var be = plot && value.querySelector(".cmp-best");
+      var svg = plot ? framed(plot, S.valueTitle, desc, be ? be.textContent : "")
         : (shown ? ratingSvg(shown, cap.textContent, metric === "acc" || metric === "hall", colors, desc) : null);
       var done = function(){ b.textContent = busy; b.disabled = false; };
       if(svg) savePng(svg, "ey-ai-guide-" + (plot ? "value" : metric) + ".png").then(done, done); else done();
