@@ -51,8 +51,8 @@ function bindToc(){
 /* model comparison */
 var NS = "http://www.w3.org/2000/svg";
 var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:" млн", B:" млрд", level:"уровень ",
-  score:"Индекс интеллекта", cost:"Стоимость задачи", cost_total:"Стоимость всего индекса", time:"Время на задачу",
-  tokens:"Токены на задачу", tokens_total:"Токены на весь индекс", axisY:"↑ Индекс интеллекта",
+  score:"Индекс интеллекта", cost:"Стоимость задачи", time:"Время на задачу",
+  tokens:"Токены на задачу", axisY:"↑ Индекс интеллекта",
   speed:"Скорость вывода", ttft:"Задержка", tps:" ток/с", subCost:"Стоимость задачи по тарифу",
   plan:"Тариф", apiPrice:"нет данных по тарифу; расчёт по ценам API", notInPlan:"не входит в тариф; расчёт по ценам API", nearFree:"≈ 0",
   pick:"Выберите модели в списке справа.", noData:"Не удалось загрузить данные. Обновите страницу.",
@@ -61,8 +61,6 @@ var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:"
   noteOmni:"За верный ответ балл начисляется, за выдуманный — вычитается, за ответ «не знаю» — ноль. Значение ниже нуля означает, что модель чаще выдумывает ответ, чем отвечает верно.",
   noteAcc:"Сколько вопросов на знания модель ответила верно. Больше — лучше.",
   noteHall:"Как часто модель выдумывает ответ вместо ответа «не знаю». Меньше — лучше.",
-  bestCost:"Оптимальные по стоимости: ", bestTime:"Самые быстрые в своём классе: ",
-  bestHint:". Наведите курсор на точку, чтобы увидеть цену и уровень размышлений.",
   of:" из ", showAll:"Показать все ", collapse:"Свернуть", preparing:"Подготовка…",
   ratingTitle:"Рейтинг моделей", valueTitle:"Стоимость и эффективность моделей",
   credit1:"Источник: Artificial Analysis · artificialanalysis.ai",
@@ -143,10 +141,10 @@ function frontier(rows, k){
 }
 
 function tipHtml(m, k){
-  var keys = ["score","cost","cost_total","time","tokens","tokens_total","speed","ttft"];
+  var keys = ["score","cost","time","tokens","speed","ttft"];   // per-task figures only
   var h = "<b>"+esc(m.family)+"</b><small>"+esc(m.creator)+(m.effort ? " · "+S.level+esc(m.effort) : "")+"</small>";
   keys.forEach(function(x){
-    if(m[x]==null || (m.sub && x==="cost_total")) return;   // the run total is an API figure
+    if(m[x]==null) return;
     var label = x==="cost" && m.sub && !m.api ? S.subCost : LABEL[x], v = x==="cost" && m.sub && !m[x] ? S.nearFree : fmt(x,m[x]);
     h += '<span'+(x===k?' class="on"':'')+'><i>'+label+'</i>'+v+'</span>';
     if(x==="cost" && m.sub) h += '<span><i>'+S.plan+'</i>'+(m.plan ? esc(m.plan)+(m.api ? " · "+S.notInPlan : "") : S.apiPrice)+'</span>';
@@ -621,10 +619,11 @@ function setupCompare(box, d){
   });
   var defaults = (d["default"] || []).filter(function(n){ return fams[n]; }), sel = {}, allEff = true, logX = true, pareto = true;
   defaults.forEach(function(n){ sel[n] = 1; });
-  var plot = box.querySelector(".cmp-plot"), note = box.querySelector(".cmp-note"), subs = box.querySelector(".cmp-subs"), bestEl = box.querySelector(".cmp-best");
+  var plot = box.querySelector(".cmp-plot"), note = box.querySelector(".cmp-note"), subs = box.querySelector(".cmp-subs");
   var ctl = box.querySelector(".cmp-ctl"), par = box.querySelector(".cmp-par input");
   var list = box.querySelector(".cmp-list"), q = box.querySelector(".cmp-q"), count = box.querySelector(".cmp-count"), eff = box.querySelector(".cmp-eff input");
-  var tab = box.querySelector(".cmp-tabs .on").getAttribute("data-tab"), subOf = {};
+  var tab = box.querySelector(".cmp-tabs .on").getAttribute("data-tab"), subOf = {}, barOf = {};
+  [].forEach.call(box.querySelectorAll(".cmp-tabs [data-k]"), function(b){ barOf[b.getAttribute("data-tab")] = b.getAttribute("data-k"); });
   [].forEach.call(subs.querySelectorAll("button.on"), function(b){ subOf[b.getAttribute("data-for")] = b.getAttribute("data-sub"); });
   var on = box.querySelector(".cmp-price .on"), price = on ? on.getAttribute("data-price") : "api", tier = "basic", plans = d.subs || {}, tabNote = note.textContent;
   var priceEl = box.querySelector(".cmp-price"), tierEl = box.querySelector(".cmp-tier");
@@ -659,20 +658,16 @@ function setupCompare(box, d){
     count.textContent = Object.keys(sel).length+S.of+Object.keys(fams).length;
   }
   function draw(){
-    var bars = !!subOf[tab], sub = subOf[tab];
+    var sub = subOf[tab] || barOf[tab], bars = !!sub;
     [].forEach.call(subs.children, function(b){ b.hidden = b.getAttribute("data-for")!==tab; });
-    subs.hidden = !bars;
+    subs.hidden = !subOf[tab];
     if(ctl) ctl.hidden = bars;
     if(priceEl) priceEl.hidden = tab!=="cost";
     if(tierEl) tierEl.hidden = tab!=="cost" || price!=="sub";
     note.textContent = tab==="cost" && price==="sub" ? note.getAttribute("data-sub-note") : tabNote;
-    bestEl.innerHTML = "";
     var vis = priced(visible());
     if(bars) return columns(plot, vis, sub);
-    var best = scatter(plot, vis, tab, {log:logX, pareto:pareto, label: tab==="cost" && price==="sub" ? S.subCost : null});
-    if(best.length) bestEl.innerHTML = (tab==="cost" ? S.bestCost : S.bestTime) +
-      best.filter(function(m, i){ return best.map(function(x){ return x.family; }).indexOf(m.family)===i; })
-        .map(function(m){ return "<b>"+esc(m.family)+"</b>"; }).join(" → ") + S.bestHint;
+    scatter(plot, vis, tab, {log:logX, pareto:pareto, label: tab==="cost" && price==="sub" ? S.subCost : null});
   }
   box.addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button") : null;
