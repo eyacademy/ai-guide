@@ -1,4 +1,4 @@
-import hashlib, html, json, os, runpy, shutil
+import hashlib, html, json, os, re, runpy, shutil
 from datetime import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -96,13 +96,114 @@ def compare(data):
             f'<div class="cmp-list"></div></aside></div></div></div>')
 
 
+def rnd(v):
+    """Round an estimate the way the slides do: 37 -> 35, 517 -> 520, 2585 -> 2 600."""
+    step = 5 if v < 200 else 10 if v < 1000 else 100 if v < 20000 else 1000
+    return max(step, round(v / step) * step)
+
+
+def sp(v):
+    return f"{v:,}".replace(",", "\u00a0")
+
+
+def ver(name):
+    return tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", name)) or (0,)
+
+
+def resolve(prices, pattern, fallback):
+    hits = [n for n in prices if re.search(pattern, n)]
+    return max(hits, key=ver) if hits else (fallback if fallback in prices else None)
+
+
+def subscriptions(data):
+    cfg = json.load(open(os.path.join(SRC, "plans.json"), encoding="utf-8"))
+    prices = data.get("prices") or {}
+    blend = lambda n: (3 * prices[n][0] + prices[n][1]) / 4
+    base = resolve(prices, cfg["base"]["model"], cfg["base"]["fallback"])
+    if not base:
+        return ""
+    cost = lambda n: cfg["base"]["response_usd"] * blend(n) / blend(base)
+    short = lambda n: re.sub(r"^Claude ", "", n)
+    rows, marks, tables = [], set(), []
+    for pv in cfg["providers"]:
+        dot = f'<i style="background:{pv["color"]}"></i>'
+        rows.append(f'<tr class="pl-h"><th colspan="4">{dot}{pv["name"]}</th></tr>')
+        for pl in pv["plans"]:
+            usd, star = pv["budget"] * pl["x"], "**" if pl.get("rough") else "*" if pl.get("unofficial") else ""
+            marks.add(star)
+            note = f' <small>({pl["note"]})</small>' if pl.get("note") else ""
+            rows.append(f'<tr><td><b>{pv["name"]} {pl["name"]}</b>{note}</td><td class="pl-n">${pl["price"]}</td>'
+                        f'<td>≈ ${sp(rnd(usd))}{star}</td><td><span class="pl-x" style="--c:{pv["color"]}">{round(usd / pl["price"])}×</span></td></tr>')
+        # per-model table
+        head = "".join(f'<th>{pl.get("short", pl["name"])}<br>${pl["price"]}</th>' for pl in pv["plans"])
+        body = [f'<tr class="pl-lim"><td><b>{pv["limit_label"]}</b><small>{pv["limit_note"]}</small></td>'
+                + "".join(f'<td>{pl["limit"]}</td>' for pl in pv["plans"]) + "</tr>"]
+        resp = {}
+        for m in pv["models"]:
+            if "combo" in m:
+                f_, o_ = (resolve(prices, x, None) for x in m["combo"])
+                if not (f_ and o_):
+                    continue
+                cap = next((x.get("cap", 1) for x in pv["models"] if x.get("model") == m["combo"][0]), 1)
+                title, cells = m["title"], []
+                for i, pl in enumerate(pv["plans"]):
+                    if i < m.get("from", 0):
+                        cells.append('<td class="pl-no">—</td>')
+                    else:
+                        v = resp[f_][i] + (1 - cap) * resp[o_][i]
+                        cells.append(f'<td><b>≈ {sp(rnd(v))}</b></td>')
+            else:
+                name = resolve(prices, m["model"], m.get("fallback"))
+                if not name:
+                    continue
+                title, cells, n = short(name), [], len(pv["plans"])
+                resp[name] = [pv["budget"] * pl["x"] * m.get("share", 1) / cost(name) for pl in pv["plans"]]
+                free = m.get("free_from")
+                for i, pl in enumerate(pv["plans"]):
+                    if free is not None and i == free:
+                        cells.append(f'<td colspan="{n - i}" class="pl-free">{m["free_text"]}</td>')
+                        break
+                    if i < m.get("from", 0):
+                        lines = m.get("before") or ["нет"]
+                        cells.append('<td class="pl-no">' + lines[0] + "".join(f"<small>{x}</small>" for x in lines[1:]) + "</td>")
+                        continue
+                    v, sub = resp[name][i], m.get("sub", "")
+                    if m.get("tasks"):
+                        sub = f"≈ {sp(rnd(pv['base_tasks'] * pl['x'] * cfg['base']['response_usd'] / cost(name)))} задач"
+                    if m.get("sub_first") and i == m.get("from", 0):
+                        o = next((k for k in resp if re.search(r"Opus", k)), None)
+                        sub = m["sub_first"].replace("{ratio}", f"{v / resp[o][i]:.0f}") if o else ""
+                    cells.append(f'<td><b>≈ {sp(rnd(v))}</b>' + (f"<small>{sub}</small>" if sub else "") + "</td>")
+            body.append(f'<tr><td><b>{title}</b><small>{m["role"]}</small></td>{"".join(cells)}</tr>')
+        tables.append(f'<div class="pl-wrap"><table class="pl pl-m"><thead><tr><th class="pl-p">{dot}{pv["name"]}</th>{head}</tr></thead>'
+                      f'<tbody>{"".join(body)}</tbody></table></div>')
+    summary = ('<div class="pl-wrap"><table class="pl pl-sum"><thead><tr><th></th><th>$/мес</th><th>API-эквивалент/мес</th><th>× цены</th></tr></thead>'
+               f'<tbody>{"".join(rows)}</tbody></table></div>')
+    foot = []
+    if "*" in marks:
+        foot.append("* Множители Pro неофициальные.")
+    if "**" in marks:
+        foot.append("** Для Go данных почти нет, это грубая оценка.")
+    return (h3_sub("Сколько даёт подписка",
+                   "Сколько стоила бы та же работа по ценам API. Оценки по замерам пользователей: компании не публикуют лимиты в долларах.")
+            + summary + f'<p class="src">{" ".join(foot)}</p>'
+            + h3_sub("Сколько ответов агента в месяц",
+                     f"Ответ — один ход агента в Claude Code или Codex. В обычном чате сообщений получится больше. "
+                     f"Числа пересчитываются каждый день по текущим ценам моделей, тарифы — на {cfg['as_of']}.")
+            + "".join(tables))
+
+
+def h3_sub(t, cap):
+    return f'<h3>{t}</h3><p class="cap">{cap}</p>'
+
+
 data = load_data()
 data["logos"] = LOGOS
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
 body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {})})["BODY"]
 count, bars, legend, date = chart(data)
-body = body.replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
+body = body.replace("{SUBS}", subscriptions(data)).replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
 body = body.replace("{VERSION}", version, 1)

@@ -75,7 +75,9 @@ def fetch():
         if (m.get("release_date") or "") >= year_ago:
             variants.append({"family": name, "effort": effort, "creator": creator, "score": round(score, 1), **metrics(m)})
         if name not in best or score > best[name]["score"]:
+            pr = m.get("pricing") or {}
             best[name] = {"name": name, "creator": creator, "score": round(score), "effort": effort,
+                          "price": [num(pr.get("price_1m_input_tokens")), num(pr.get("price_1m_output_tokens"))],
                           "released": m.get("release_date") or "", **metrics(m)}
     current = sorted(latest(best.values()), key=lambda x: -x["score"])
     by_creator = {}
@@ -88,8 +90,10 @@ def fetch():
     # Chart picker: every variant from the last year; the top current lines are ticked by default.
     variants = [v for v in variants if v["cost"] or v["time"]]
     default = [m["name"] for m in current if m["released"] >= year_ago and any(v["family"] == m["name"] for v in variants)][:12]
+    # API list prices of current models, $ per million input/output tokens, for the subscription tables.
+    prices = {m["name"]: m["price"] for m in current if all(m["price"])}
     return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator,
-            "variants": variants, "default": default}
+            "variants": variants, "default": default, "prices": prices}
 
 try:
     data = fetch()

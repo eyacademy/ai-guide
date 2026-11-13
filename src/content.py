@@ -104,6 +104,7 @@ llm += ('<div class="tbl-wrap" style="margin-top:16px"><table class="tbl"><thead
         "<tr><td>API</td><td colspan=\"2\">Оплата за объём запросов, без подписки</td><td colspan=\"2\">Не обучают по умолчанию. Исключение: бесплатный уровень Gemini API</td></tr>"
         "</tbody></table></div>"
         '<p class="src">Цены за пользователя в месяц в долларах США. У бизнес-тарифов меньшая цена при оплате за год.</p>')
+llm += "{SUBS}"
 llm += h3("Как отключить обучение в личной подписке")
 llm += '<div class="grid">' + "".join(f'<div class="card"><b>{a}</b><p>{b}</p></div>' for a, b in [
     ("ChatGPT", "Settings → Data controls → выключить «Improve the model for everyone». Временные чаты не используются для обучения."),
