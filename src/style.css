@@ -71,15 +71,16 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .bar .lo{display:none}
 #eyai .lgl{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:0;background:var(--c);color:#fff;font-size:11px;font-weight:700}
 @media (min-width:701px){
-#eyai .bars{display:flex;align-items:stretch;gap:6px;height:400px;padding-left:44px}
-#eyai .bar{display:flex;flex-direction:column;align-items:stretch;flex:1 1 0;min-width:0;padding:0;transition:opacity .15s;cursor:default}
+#eyai .plot{--ph:400px;--plogo:32px;--pname:104px;--pgap:12px}
+#eyai .bars{display:flex;align-items:stretch;gap:6px;height:var(--ph);padding-left:44px}
+#eyai .bar{display:flex;flex-direction:column;align-items:stretch;flex:1 1 0;min-width:0;padding:0;gap:var(--pgap);transition:opacity .15s;cursor:default}
 #eyai .bars:hover .bar{opacity:.4}
 #eyai .bars .bar:hover{opacity:1}
 #eyai .bar .t{order:1;flex:1;height:auto;background:none;position:relative}
 #eyai .bar .f{width:100%;height:var(--w);min-width:0;padding:8px 0 0;align-items:flex-start;justify-content:center;border-radius:0;font-size:13px;transition:height .8s ease}
 #eyai .bar .i{display:none}
-#eyai .bar .lo{order:2;display:flex;justify-content:center;align-items:center;height:32px}
-#eyai .bar .n{order:3;height:104px;position:relative;font-size:13px;line-height:1.2}
+#eyai .bar .lo{order:2;display:flex;justify-content:center;align-items:center;height:var(--plogo)}
+#eyai .bar .n{order:3;height:var(--pname);position:relative;font-size:13px;line-height:1.2}
 #eyai .bar .n > span{position:absolute;right:50%;top:0;width:112px;font-size:12px;text-align:right;transform-origin:100% 0;transform:rotate(-45deg);white-space:normal}
 #eyai .bar .n small{display:none}
 #eyai .bar:hover .n{font-weight:700}
@@ -88,8 +89,9 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .bar .f.sm{color:var(--ink)}
 #eyai .bar .f.sm em{position:absolute;bottom:100%;left:0;right:0;text-align:center;padding-bottom:4px}
 #eyai .bar.neg .f.sm em{bottom:auto;top:100%;padding:4px 0 0}
-/* dotted scale behind the columns, as on Artificial Analysis; 264px = 400px minus the logo and name rows */
-#eyai .rt-grid{display:block;position:absolute;left:0;right:0;top:0;height:264px;pointer-events:none}
+/* dotted scale behind the columns, as on Artificial Analysis */
+#eyai .rt-grid{display:block;position:absolute;left:0;right:0;top:0;pointer-events:none;
+  height:calc(var(--ph) - var(--plogo) - var(--pname) - var(--pgap) * 2)}
 #eyai .rt-grid i{position:absolute;left:44px;right:0;bottom:var(--g,0%);border-top:1px dotted #d4d4dc}
 #eyai .rt-grid i.z{border-top:1px solid var(--line)}
 #eyai .rt-grid b{position:absolute;right:calc(100% + 8px);bottom:-8px;font-size:11px;font-weight:400;color:var(--ink2)}

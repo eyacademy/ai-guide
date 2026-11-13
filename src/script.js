@@ -503,6 +503,8 @@ function initRating(){
         '<span class="n"><span>'+name+'</span><small>'+esc(m.creator)+'</small></span><span class="t"><span class="f'+(w<14 || m.v<0 ? " sm" : "")+'" style="--c:'+c+';--w:'+w+'%"><em>'+val+'</em></span></span></li>';
     }).join("");
     legend.innerHTML = leg.join("");
+    var col = ol.querySelector(".bar .t");          // the scale must end exactly where the columns do
+    if(grid && col && col.offsetHeight) grid.style.height = col.getBoundingClientRect().height + "px";
     cap.textContent = rtCap(metric, list.length);
     note.textContent = rtNote(metric) || tabNote;
     if(dateEl) dateEl.textContent = tab==="know" ? (S.knowledgeNote || d.knowledge_note || dateText) : dateText;
