@@ -56,12 +56,12 @@ var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:"
   pick:"Выберите модели в списке справа.", noData:"Не удалось загрузить данные. Обновите страницу.",
   capScore:"Топ-{n} моделей, баллы из 100", capOmni:"Итоговый балл от −100 до 100", capAcc:"Доля верных ответов",
   capHall:"Доля выдуманных ответов, меньше — лучше", capField:"Баллы из 100",
-  noteOmni:"За верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль. Ниже нуля — модель чаще выдумывает, чем знает.",
+  noteOmni:"За верный ответ балл начисляется, за выдуманный — вычитается, за ответ «не знаю» — ноль. Значение ниже нуля означает, что модель чаще выдумывает ответ, чем отвечает верно.",
   noteAcc:"Сколько вопросов на знания модель ответила верно. Больше — лучше.",
-  noteHall:"Как часто модель выдумывает ответ, когда должна была сказать «не знаю». Меньше — лучше.",
+  noteHall:"Как часто модель выдумывает ответ вместо ответа «не знаю». Меньше — лучше.",
   bestCost:"Самые выгодные: ", bestTime:"Самые быстрые для своего уровня: ",
-  bestHint:". Наведите на точку, чтобы увидеть цену и уровень размышлений.",
-  of:" из ", showAll:"Показать все ", collapse:"Свернуть", preparing:"Готовим…",
+  bestHint:". Наведите курсор на точку, чтобы увидеть цену и уровень размышлений.",
+  of:" из ", showAll:"Показать все ", collapse:"Свернуть", preparing:"Подготовка…",
   ratingTitle:"Рейтинг моделей", valueTitle:"Какая модель выгоднее",
   credit1:"Источник: Artificial Analysis · artificialanalysis.ai",
   credit2:"Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide",
@@ -176,11 +176,11 @@ function scatter(plot, rows, k, opt){
   }
   var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":S.score+" / "+LABEL[k]});
   for(var v=y0; v<=y1; v+=10){
-    el("line", {x1:M.l, x2:W-M.r, y1:Y(v), y2:Y(v), "class":"gl"}, svg);
+    el("line", {x1:M.l, x2:W-M.r, y1:Y(v), y2:Y(v), "class":"gl", "stroke-dasharray":"2 4"}, svg);
     el("text", {x:M.l-8, y:Y(v)+4, "text-anchor":"end", "class":"ax"}, svg).textContent = v;
   }
   xt.forEach(function(t){
-    el("line", {x1:X(t), x2:X(t), y1:M.t, y2:H-M.b, "class":"gl"}, svg);
+    el("line", {x1:X(t), x2:X(t), y1:M.t, y2:H-M.b, "class":"gl", "stroke-dasharray":"2 4"}, svg);
     el("text", {x:X(t), y:H-M.b+18, "text-anchor":"middle", "class":"ax"}, svg).textContent = fmt(k,t,true);
   });
   el("text", {x:W-M.r, y:H-M.b-6, "text-anchor":"end", "class":"ax"}, svg).textContent = LABEL[k]+" →";
@@ -326,6 +326,36 @@ function colorFrom(colors, creator){
 /* saving a chart as a picture, with the sources named under it */
 function credit(){ return [S.credit1, S.credit2]; }
 
+// The short description that sits above a chart, taken from the section it belongs to.
+function secLead(node){
+  var s = node && node.closest ? node.closest("section") : null, p = s && s.querySelector(".sec-lead");
+  return p ? p.textContent.trim() : "";
+}
+
+// Break the description into a few lines that fit the picture.
+function wrapText(text, perLine, maxLines){
+  var words = String(text || "").trim().split(/\s+/), lines = [], cur = "";
+  if(!words[0]) return [];
+  words.forEach(function(w){
+    if(!cur) cur = w;
+    else if((cur + " " + w).length <= perLine) cur += " " + w;
+    else { lines.push(cur); cur = w; }
+  });
+  if(cur) lines.push(cur);
+  if(lines.length > maxLines){
+    lines = lines.slice(0, maxLines);
+    lines[maxLines - 1] = lines[maxLines - 1].replace(/[\s,;:.\u2014-]+$/, "") + "\u2026";
+  }
+  return lines;
+}
+
+// Values for the dotted scale behind the columns: a round step around the zero line.
+function scaleTicks(pos, neg){
+  var step = niceStep(pos + neg) || 1, out = [];
+  for(var v = -Math.ceil(neg / step) * step; v <= pos + step / 2; v += step) out.push(Math.round(v * 1e6) / 1e6);
+  return out;
+}
+
 function dataUri(url){
   return fetch(url, {cache:"force-cache"}).then(function(r){ return r.blob(); }).then(function(b){
     return new Promise(function(ok){ var f = new FileReader(); f.onload = function(){ ok(f.result); }; f.readAsDataURL(b); });
@@ -341,45 +371,61 @@ function svgText(parent, x, y, text, opt){
 }
 
 // The rating is drawn as HTML on the page, so the picture is built from the same numbers.
-function ratingSvg(list, caption, pct, colors){
-  var W = Math.max(1100, 60 + list.length * 46), H = 620, M = {l:54, r:24, t:92, b:190};
-  var ih = H - M.t - M.b, iw = W - M.l - M.r, slot = iw / list.length;
+function ratingSvg(list, caption, pct, colors, desc){
+  var W = Math.max(1100, 60 + list.length * 46), M = {l:64, r:28, b:190};
+  var lines = wrapText(desc, Math.floor((W - M.l - M.r) / 7.1), 3);
+  M.t = 74 + (lines.length ? lines.length * 18 + 8 : 0) + 26;
+  var ih = 338, H = M.t + ih + M.b, iw = W - M.l - M.r, slot = iw / list.length;
   var vals = list.map(function(m){ return m.v; });
   var pos = Math.max(0, Math.max.apply(0, vals)), neg = Math.max(0, -Math.min.apply(0, vals));
   var pad = neg ? (pos + neg) * 0.09 : 0, max = (pos + neg + pad) || 1, zero = M.t + ih * pos / max;
   var svg = el("svg", {xmlns:NS, width:W, height:H, viewBox:"0 0 "+W+" "+H});
   el("rect", {x:0, y:0, width:W, height:H, fill:"#fff"}, svg);
-  svgText(svg, M.l, 44, S.ratingTitle, {size:26, bold:true});
-  svgText(svg, M.l, 70, caption, {size:14, fill:"#747480"});
-  el("line", {x1:M.l - 10, x2:W - M.r, y1:zero, y2:zero, stroke:"#e1e1e6"}, svg);
+  el("rect", {x:0.5, y:0.5, width:W - 1, height:H - 1, fill:"none", stroke:"#e1e1e6"}, svg);
+  svgText(svg, M.l, 46, S.ratingTitle, {size:26, bold:true});
+  lines.forEach(function(t, i){ svgText(svg, M.l, 74 + i * 18, t, {size:13, fill:"#747480"}); });
+  svgText(svg, M.l, M.t - 20, caption, {size:13, fill:"#747480"});
+  // Dotted scale, as on Artificial Analysis: the zero line solid, the rest dotted.
+  scaleTicks(pos, neg + pad).forEach(function(v){
+    var gy = zero - v / max * ih;
+    if(gy < M.t - 1 || gy > M.t + ih + 1) return;
+    el("line", {x1:M.l, x2:W - M.r, y1:gy, y2:gy, stroke:"#e1e1e6", "stroke-dasharray": v ? "2 4" : null}, svg);
+    svgText(svg, M.l - 10, gy + 4, Math.round(v) + (pct ? "%" : ""), {size:11, fill:"#747480", anchor:"end"});
+  });
   list.forEach(function(m, i){
     var cx = M.l + slot * (i + 0.5), bw = Math.min(30, slot * 0.66);
     var h = Math.max(2, Math.abs(m.v) / max * ih), top = m.v < 0 ? zero : zero - h;
     el("rect", {x:cx - bw / 2, y:top, width:bw, height:h, fill:m.c}, svg);
-    var r = Math.round(m.v), label = (r < 0 ? "−" : "") + Math.abs(r) + (pct ? "%" : "");
+    var r = Math.round(m.v), label = (r < 0 ? "\u2212" : "") + Math.abs(r) + (pct ? "%" : "");
     svgText(svg, cx, m.v < 0 ? top + h + 15 : top - 6, label, {size:12, bold:true, anchor:"middle"});
     if(m.file) el("image", {href:BASE + "logos/" + m.file, x:cx - 10, y:M.t + ih + 10, width:20, height:20}, svg);
     svgText(svg, cx + 4, M.t + ih + 42, m.name, {size:12, anchor:"end", rotate:-45});
   });
-  credit().forEach(function(line, i){ svgText(svg, M.l, H - 28 + i * 16, line, {size:12, fill:"#747480"}); });
+  el("line", {x1:M.l, x2:W - M.r, y1:H - 56, y2:H - 56, stroke:"#e1e1e6"}, svg);
+  credit().forEach(function(line, i){ svgText(svg, M.l, H - 34 + i * 16, line, {size:12, fill:"#747480"}); });
   return svg;
 }
 
-function framed(svg){
-  // Put the credit under a copy of a chart that is already drawn as SVG.
+function framed(svg, title, desc){
+  // Put the title, the description and the credit around a chart that is already drawn as SVG.
   var box = svg.viewBox.baseVal, w = box && box.width || svg.clientWidth, h = box && box.height || svg.clientHeight;
-  var out = el("svg", {xmlns:NS, width:Math.round(w) + 48, height:Math.round(h) + 120, viewBox:"0 0 "+(w + 48)+" "+(h + 120)});
-  el("rect", {x:0, y:0, width:w + 48, height:h + 120, fill:"#fff"}, out);
+  var p = 24, lines = wrapText(desc, Math.floor(w / 7.1), 3);
+  var head = 44 + (lines.length ? lines.length * 17 + 12 : 0), W = w + p * 2, H = head + h + 74;
+  var out = el("svg", {xmlns:NS, width:Math.round(W), height:Math.round(H), viewBox:"0 0 "+W+" "+H});
+  el("rect", {x:0, y:0, width:W, height:H, fill:"#fff"}, out);
+  el("rect", {x:0.5, y:0.5, width:W - 1, height:H - 1, fill:"none", stroke:"#e1e1e6"}, out);
   var st = el("style", {}, out);
   st.textContent = "text{font-family:Arial,sans-serif}.gl{stroke:#e1e1e6}.ax{fill:#747480;font-size:12px}" +
     ".ef{fill:#747480;font-size:10px}.lb{fill:#747480;font-size:12px}.lb.on{fill:#2e2e38;font-weight:700}" +
     ".vl{fill:#2e2e38;font-size:11px;font-weight:700}.gn{font-size:12px;font-weight:700}";
   var copy = svg.cloneNode(true);
-  copy.setAttribute("x", 24); copy.setAttribute("y", 52);
+  copy.setAttribute("x", p); copy.setAttribute("y", head);
   copy.setAttribute("width", w); copy.setAttribute("height", h);
   out.appendChild(copy);
-  svgText(out, 24, 34, S.valueTitle, {size:20, bold:true});
-  credit().forEach(function(line, i){ svgText(out, 24, h + 82 + i * 16, line, {size:12, fill:"#747480"}); });
+  svgText(out, p, 34, title, {size:20, bold:true});
+  lines.forEach(function(t, i){ svgText(out, p, 56 + i * 17, t, {size:12.5, fill:"#747480"}); });
+  el("line", {x1:p, x2:W - p, y1:head + h + 18, y2:head + h + 18, stroke:"#e1e1e6"}, out);
+  credit().forEach(function(line, i){ svgText(out, p, head + h + 40 + i * 16, line, {size:12, fill:"#747480"}); });
   return out;
 }
 
@@ -426,7 +472,7 @@ function initRating(){
   var rt = document.querySelector("#eyai .rt");
   if(!rt || rt.getAttribute("data-on")) return;
   rt.setAttribute("data-on", "1");
-  var chart = rt.parentNode, ol = chart.querySelector(".bars"), legend = chart.querySelector(".legend"), cap = chart.querySelector(".rt-cap");
+  var chart = rt.parentNode, ol = chart.querySelector(".bars"), grid = chart.querySelector(".rt-grid"), legend = chart.querySelector(".legend"), cap = chart.querySelector(".rt-cap");
   var dateEl = chart.querySelector(".rt-date"), dateText = dateEl ? dateEl.textContent : "";
   var note = rt.querySelector(".rt-note"), colors = {};
   try { colors = JSON.parse(rt.getAttribute("data-colors")); } catch(e){}
@@ -442,6 +488,11 @@ function initRating(){
     var vals = list.map(function(m){ return m.v; }), pos = Math.max(0, Math.max.apply(0, vals)), neg = Math.max(0, -Math.min.apply(0, vals));
     var pad = neg ? (pos + neg)*0.09 : 0, max = (pos + neg + pad) || 1, seen = {}, leg = [];
     ol.style.setProperty("--z", ((neg + pad)/max*100).toFixed(2)+"%");
+    if(grid) grid.innerHTML = scaleTicks(pos, neg + pad).map(function(v){
+      var y = ((neg + pad + v)/max*100);
+      return y < -0.5 || y > 100.5 ? "" :
+        '<i class="'+(v ? "" : "z")+'" style="--g:'+y.toFixed(2)+'%"><b>'+(Math.round(v)+(pct ? "%" : ""))+'</b></i>';
+    }).join("");
     ol.innerHTML = list.map(function(m, i){
       var c = colorFrom(colors, m.creator), f = logoFile(m.creator), w = Math.max(m.v ? 2 : 0.6, Math.abs(m.v)/max*100).toFixed(2);
       m.c = c; m.file = f;
@@ -471,7 +522,9 @@ function initRating(){
       var busy = b.textContent;
       b.textContent = S.preparing; b.disabled = true;
       var plot = value && !value.hidden ? value.querySelector(".cmp-plot svg") : null;
-      var svg = plot ? framed(plot) : (shown ? ratingSvg(shown, cap.textContent, metric === "acc" || metric === "hall", colors) : null);
+      var desc = plot ? note.textContent : secLead(chart);
+      var svg = plot ? framed(plot, S.valueTitle, desc)
+        : (shown ? ratingSvg(shown, cap.textContent, metric === "acc" || metric === "hall", colors, desc) : null);
       var done = function(){ b.textContent = busy; b.disabled = false; };
       if(svg) savePng(svg, "ey-ai-guide-" + (plot ? "value" : metric) + ".png").then(done, done); else done();
       return;

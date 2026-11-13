@@ -52,6 +52,8 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 /* chart */
 #eyai .chart{background:var(--card);border:1px solid var(--line);padding:26px 24px 20px}
 #eyai .chart-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;margin-bottom:18px;font-size:14px;color:var(--ink2)}
+#eyai .plot{position:relative}
+#eyai .rt-grid{display:none}
 #eyai .bars{list-style:none}
 #eyai .bar{display:grid;grid-template-columns:28px minmax(120px,230px) 1fr;gap:12px;align-items:center;padding:5px 0}
 #eyai .bar .i{font-size:13px;color:var(--ink2);text-align:right}
@@ -74,7 +76,6 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .bars:hover .bar{opacity:.4}
 #eyai .bars .bar:hover{opacity:1}
 #eyai .bar .t{order:1;flex:1;height:auto;background:none;position:relative}
-#eyai .bar .t::after{content:"";position:absolute;left:-3px;right:-3px;bottom:var(--z,0%);border-top:1px solid var(--line)}
 #eyai .bar .f{width:100%;height:var(--w);min-width:0;padding:8px 0 0;align-items:flex-start;justify-content:center;border-radius:0;font-size:13px;transition:height .8s ease}
 #eyai .bar .i{display:none}
 #eyai .bar .lo{order:2;display:flex;justify-content:center;align-items:center;height:32px}
@@ -87,6 +88,11 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .bar .f.sm{color:var(--ink)}
 #eyai .bar .f.sm em{position:absolute;bottom:100%;left:0;right:0;text-align:center;padding-bottom:4px}
 #eyai .bar.neg .f.sm em{bottom:auto;top:100%;padding:4px 0 0}
+/* dotted scale behind the columns, as on Artificial Analysis; 264px = 400px minus the logo and name rows */
+#eyai .rt-grid{display:block;position:absolute;left:0;right:0;top:0;height:264px;pointer-events:none}
+#eyai .rt-grid i{position:absolute;left:44px;right:0;bottom:var(--g,0%);border-top:1px dotted #d4d4dc}
+#eyai .rt-grid i.z{border-top:1px solid var(--line)}
+#eyai .rt-grid b{position:absolute;right:calc(100% + 8px);bottom:-8px;font-size:11px;font-weight:400;color:var(--ink2)}
 }
 
 /* notes, tables, lists */

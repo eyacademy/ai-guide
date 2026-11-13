@@ -158,11 +158,12 @@ out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' 
 rating = ('<div class="chart">{RATING_TABS}<div class="rt-main"><div class="chart-top"><span class="rt-cap">'
           + T("Топ-{n} моделей, баллы из 100").replace("{n}", "{CHART_N}")
           + '</span><span class="rt-date">{CHART_DATE}</span></div>'
-          '<ol class="bars cut">{CHART_BARS}</ol><button type="button" class="rt-more">' + T("Показать все") + '</button>'
+          '<div class="plot"><div class="rt-grid">{CHART_GRID}</div><ol class="bars cut">{CHART_BARS}</ol></div>'
+          '<button type="button" class="rt-more">' + T("Показать все") + '</button>'
           '<div class="legend">{CHART_LEGEND}</div></div><div class="rt-value" hidden>{COMPARE}</div></div>'
           '<p class="src">' + T("Источник:") + ' <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>')
 out.append(sec("rating", "01", "Рейтинг моделей",
-               "Artificial Analysis Intelligence Index. Независимая лаборатория прогоняет модели через 10 тестов: агентные задачи, программирование, знания, научное мышление. Чем выше балл, тем лучше модель справляется со сложной работой.",
+               "Artificial Analysis Intelligence Index. Независимая лаборатория оценивает модели по 10 тестам: агентные задачи, программирование, знания, научное мышление. Чем выше балл, тем лучше модель справляется со сложной работой.",
                rating))
 
 # 3. chat
@@ -175,7 +176,7 @@ v += vendor("OpenAI", "ChatGPT",
              ("Codex в браузере", "https://chatgpt.com/codex", "chatgpt.com/codex"),
              ("API", "https://platform.openai.com", "platform.openai.com")])
 v += vendor("Anthropic", "Claude",
-            "Понимает задачу с полуслова и пишет живым языком, поэтому текст меньше приходится править. Силён в программировании, длинных документах и долгой самостоятельной работе.",
+            "Точно понимает формулировку задачи и пишет естественным языком, поэтому текст требует меньше правок. Сильные стороны — программирование, длинные документы и длительная самостоятельная работа.",
             models("Anthropic", ["Claude Opus 5.5", "Claude Sonnet 5.5", "Claude Fable 5.1", "Claude Haiku 4.5"]),
             [("Чат", "https://claude.ai", "claude.ai"),
              ("Приложение: Cowork и Claude Code", "https://claude.com/download", "claude.com/download"),
@@ -203,8 +204,8 @@ PLAN_ROWS = [("ChatGPT", "Free, Go $8, Plus $20, Pro от $100", "Да, можн
              ("Gemini", "Free, AI Plus $5, AI Pro $20, Ultra от $100", "Да, можно отключить", "Google Workspace от $7, Gemini включён"),
              ("Copilot", "Бесплатно, Microsoft 365 Personal $10, Premium $20", "В новом приложении нет",
               "Copilot Chat бесплатно с M365, Microsoft 365 Copilot $21–30 + лицензия M365")]
-kinds = ('<p class="pcap">' + T("Личная подписка может обучать модели на вашей переписке, пока это не отключить, и не даёт компании контроля. "
-         "Бизнес-подписка на данных не обучает, даёт администратора, вход через корпоративный аккаунт и один счёт, подключается от 2 пользователей.") + '</p>'
+kinds = ('<p class="pcap">' + T("Личная подписка может обучать модели на вашей переписке, пока эта настройка не отключена, и не даёт компании контроля над данными. "
+         "Бизнес-подписка не обучает модели на ваших данных, предусматривает администратора, вход через корпоративный аккаунт и единый счёт; подключается от 2 пользователей.") + '</p>'
          f'<div class="pl-wrap"><table class="pl pl-k"><tbody><tr class="pl-h"><th>{T("Сервис")}</th><th>{T("Личная подписка")}</th>'
          f'<th>{T("Обучение на данных")}</th><th>{T("Бизнес-подписка")}</th></tr>'
          + "".join(f'<tr><td><b>{logo(n, "pl-lg", 16)}{n}</b></td><td>{T(a)}</td><td>{T(t)}</td><td>{T(b)}</td></tr>' for n, a, t, b in PLAN_ROWS)
@@ -216,8 +217,8 @@ privacy = '<div class="grid">' + "".join(f'<div class="card"><b>{logo(a)}{a}</b>
     ("Claude", "Settings → Privacy → выключить «Help improve Claude». Чаты в режиме инкогнито не используются для обучения."),
     ("Gemini", "Activity → выключить «Keep Activity». Временные чаты не используются для обучения."),
 ]) + "</div>"
-llm += h3("Подписки", "Какие бывают, сколько стоят и сколько работы дают. Для рабочих документов берите бизнес-подписку: "
-          "она стоит почти как личная, а данные компании остаются под её контролем.")
+llm += h3("Подписки", "Виды подписок, их стоимость и доступный объём работы. Для рабочих документов выбирайте бизнес-подписку: "
+          "она сопоставима по цене с личной, а данные компании остаются под её контролем.")
 llm += ('<div class="pl-box"><div class="pl-tabs"><button type="button" class="on">' + T("Какие бывают") + '</button>{SUBS_TABS}'
         '<button type="button">' + T("Как отключить обучение") + '</button></div>'
         f'<div class="pl-panel">{kinds}</div>' + "{SUBS_PANELS}" + f'<div class="pl-panel" hidden>{privacy}</div></div>')
@@ -230,18 +231,18 @@ others = grid([
     ("Mistral Vibe", "Европейский чат-бот, до мая 2026 назывался Le Chat.", "https://chat.mistral.ai", "открытая"),
     ("Qwen", f"Модели Alibaba. Флагман {model('Alibaba', 'Qwen3.8 Max')}.", "https://chat.qwen.ai", "открытая"),
     ("Z.ai (GLM)", f"{model('Z AI', 'GLM-5.3')}, одна из сильнейших открытых моделей.", "https://chat.z.ai", "открытая"),
-    ("Kimi", f"{model('Kimi', 'Kimi K3')} от Moonshot AI. Умеет запускать рой агентов для больших задач.", "https://www.kimi.com", "открытая"),
+    ("Kimi", f"{model('Kimi', 'Kimi K3')} от Moonshot AI. Запускает группу агентов для крупных задач.", "https://www.kimi.com", "открытая"),
     ("t3.chat", "Одна подписка на модели разных компаний в одном окне.", "https://t3.chat"),
 ])
 llm = vendor_tabs([("Другие чат-боты", others)]) + llm
 out.append(sec("llm", "02", "Чат-боты и модели",
-               "Для большинства задач хватит одного из четырёх сервисов ниже. У всех есть бесплатный тариф, но самые сильные модели открываются только в платных.", llm))
+               "Для большинства задач достаточно одного из четырёх сервисов ниже. У всех есть бесплатный тариф, но самые сильные модели доступны только в платных.", llm))
 
 # 4. agents
-ag = h3("Агенты в рабочих чатах команды", "Агент живёт там, где работает команда, и выполняет задачи по запросу, расписанию или событию.")
+ag = h3("Агенты в рабочих чатах команды", "Агент работает там же, где и команда, и выполняет задачи по запросу, расписанию или событию.")
 ag += grid([
     ("ChatGPT Workspace Agents", "Общие агенты команды: отчёты, ответы, подготовка документов. Работают в ChatGPT и Slack, по расписанию.", "https://chatgpt.com", "Business", True, "chatgpt.com"),
-    ("Claude Tag", "Claude как участник Slack-канала: любой пишет @Claude и поручает задачу. Помнит контекст канала, может сам напоминать о важном.", "https://claude.com/product/tag", "Team", True),
+    ("Claude Tag", "Claude как участник Slack-канала: любой сотрудник упоминает @Claude и поручает задачу. Помнит контекст канала и напоминает о важных вопросах.", "https://claude.com/product/tag", "Team", True),
     ("Copilot Agent Builder", "Простой агент внутри Microsoft 365: отвечает на вопросы и выполняет задачи по расписанию.", "https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/agent-builder", None, False, "learn.microsoft.com"),
     ("Copilot Studio", "Агенты, которые реагируют на события и выполняют действия во внешних системах.", "https://copilotstudio.microsoft.com"),
 ])
@@ -251,17 +252,17 @@ ag += grid([
     ("Claude Cowork", "Агент для офисной работы: файлы, программы, браузер. Готовит docx, xlsx, pptx, выполняет задачи по расписанию.", "https://claude.com/product/cowork"),
     ("Manus", "Универсальный агент: исследования, отчёты, сайты по одной задаче.", "https://manus.im"),
 ])
-ag += h3("Агенты в облаке, 24/7", "Новый класс агентов: у каждого свой облачный компьютер с браузером. Ничего не нужно устанавливать, задачи идут даже при закрытом ноутбуке. Данные хранятся у поставщика.")
+ag += h3("Агенты в облаке, 24/7", "Новый класс агентов: у каждого свой облачный компьютер с браузером. Ничего не нужно устанавливать, задачи выполняются даже при выключенном компьютере. Данные хранятся у поставщика.")
 ag += grid([
-    ("dots", "OpenAI, сентябрь 2026. Постоянные агенты на самой сильной модели OpenAI в ChatGPT, Slack и Teams. В фоне ищут, чем помочь.", "https://openai.com/index/introducing-dots/", "Pro", True, "openai.com"),
+    ("dots", "OpenAI, сентябрь 2026. Постоянные агенты на самой сильной модели OpenAI в ChatGPT, Slack и Teams. Работают в фоновом режиме и сами предлагают помощь.", "https://openai.com/index/introducing-dots/", "Pro", True, "openai.com"),
     ("Grok Bot", "SpaceXAI, август 2026. Команда ботов на одном облачном компьютере. Задачу можно показать, и бот запомнит порядок действий.", "https://x.ai/bot", "SuperGrok", True, "x.ai/bot"),
     ("Muse", "Meta, сентябрь 2026. Личный агент с отдельной виртуальной машиной. Агент Sentinel пропускает в интернет только одобренные действия.", "https://muse.ai", "только США", True),
     ("Gemini Spark", "Google. Агент работает круглосуточно, задачи можно ставить письмом в Gmail.", "https://gemini.google/overview/agent/spark/", "не во всех странах", True, "gemini.google"),
 ])
-ag += h3("Агенты на сервере компании", "Открытый код: ставятся на ваш сервер или ноутбук, данные не уходят к поставщику. Работают с любой моделью, в том числе локальной. Установку и безопасность обеспечивает ИТ-отдел.")
+ag += h3("Агенты на сервере компании", "Открытый код: устанавливаются на ваш сервер или компьютер, данные не передаются поставщику. Работают с любой моделью, в том числе локальной. Установку и безопасность обеспечивает ИТ-отдел.")
 ag += grid([
     ("OpenClaw", "Самый популярный открытый агент, около 390 тыс. звёзд на GitHub. Браузер, файлы, терминал; общается через WhatsApp, Telegram, Slack и другие мессенджеры.", "https://openclaw.ai", "открытый", False),
-    ("Hermes Agent", "Nous Research. Ставится одной командой, сам создаёт навыки из выполненных задач и помнит контекст. 20+ каналов, включая Telegram и Teams.", "https://hermes-agent.nousresearch.com", "открытый", False, "nousresearch.com"),
+    ("Hermes Agent", "Nous Research. Устанавливается одной командой, сам создаёт навыки из выполненных задач и помнит контекст. 20+ каналов, включая Telegram и Teams.", "https://hermes-agent.nousresearch.com", "открытый", False, "nousresearch.com"),
     ("NVIDIA NemoClaw", "OpenClaw в защищённой среде NVIDIA с моделями Nemotron и правилами безопасности.", "https://www.nvidia.com/en-us/ai/nemoclaw/", "открытый", False),
 ])
 ag += h3("Для разработчиков")
@@ -277,12 +278,12 @@ ag += h3("MCP: подключение ИИ к вашим системам")
 ag += grid([
     ("Документация MCP", "Официальное описание протокола и примеры.", "https://modelcontextprotocol.io"),
     ("MCP Registry", "Официальный реестр публичных MCP-серверов.", "https://registry.modelcontextprotocol.io", None, False, "modelcontextprotocol.io"),
-    ("Smithery", "Каталог MCP-серверов с установкой в пару кликов.", "https://smithery.ai"),
+    ("Smithery", "Каталог MCP-серверов с установкой в несколько кликов.", "https://smithery.ai"),
     ("Glama", "Самый большой каталог MCP-серверов с поиском.", "https://glama.ai/mcp/servers"),
     ("mcp.so", "Большой открытый каталог MCP-серверов от сообщества.", "https://mcp.so"),
 ])
 ag += '<p class="note">' + T("<b>Агенты и MCP-серверы действуют сами.</b> Перед подключением к рабочим данным ограничьте права доступа и проверьте, кто автор сервера.") + "</p>"
-ag += h3("Автоматизация без программирования", "Цепочки действий между сервисами: письмо пришло, ИИ разобрал, задача появилась в CRM.")
+ag += h3("Автоматизация без программирования", "Цепочки действий между сервисами: пришло письмо — ИИ его разобрал — задача появилась в CRM.")
 ag += grid([
     ("n8n", "Гибкий конструктор с ИИ-агентами. Можно развернуть на серверах компании.", "https://n8n.io"),
     ("Zapier", "Облачная автоматизация для 9000+ приложений, свои агенты и MCP.", "https://zapier.com"),
@@ -292,26 +293,26 @@ out.append(sec("agents", "03", "ИИ-агенты",
                "Чат-бот отвечает на вопросы. Агент сам выполняет задачу: планирует шаги, пользуется инструментами и доводит работу до результата.", tabify(ag)))
 
 # 5. media
-m = h3("Всё в одном", "Платформы, где в одной подписке собраны модели для фото, видео и звука.")
+m = h3("Комплексные платформы", "Платформы, где в одной подписке собраны модели для фото, видео и звука.")
 m += grid([
-    ("Higgsfield", "Казахстанский единорог: фото, видео и звук в одном месте. Лучшие модели (Seedance, Kling, Veo, Nano Banana, Wan) и свои инструменты: Cinema Studio, Soul ID, Speak. Выбор маркетологов для соцсетей.", "https://higgsfield.ai", "из Казахстана"),
+    ("Higgsfield", "Казахстанская компания-единорог: фото, видео и звук в одном сервисе. Ведущие модели (Seedance, Kling, Veo, Nano Banana, Wan) и собственные инструменты: Cinema Studio, Soul ID, Speak. Популярен у маркетологов для социальных сетей.", "https://higgsfield.ai", "из Казахстана"),
     ("Adobe Firefly", "Модели Adobe, Google, OpenAI и FLUX в одной подписке, безопасно для коммерческого использования.", "https://firefly.adobe.com"),
     ("Freepik", "Фотосток и ИИ-инструменты для картинок, видео и озвучки.", "https://www.freepik.com"),
 ])
 m += h3("Изображения")
 m += grid([
     (retitle("ChatGPT Images 2.5", media("image", r"^(GPT|ChatGPT) Image", "ChatGPT Images 2.5")),
-     "Генерация и точное редактирование прямо в ChatGPT. Читаемый текст на картинках, в том числе на кириллице.", "https://chatgpt.com"),
+     "Генерация и точное редактирование прямо в ChatGPT. Читаемый текст на изображениях, в том числе на кириллице.", "https://chatgpt.com"),
     (retitle("Nano Banana 2 и Pro", media("image", r"^Nano Banana", "Nano Banana 2")),
      "Модель Google для изображений, работает в приложении Gemini.", "https://deepmind.google/models/gemini-image/"),
     ("Midjourney", f"Художественная генерация с сильным стилем. Версия {EXTRA.get('midjourney') or 'V8.2'}.", "https://www.midjourney.com"),
-    ("Grok Imagine", "Картинки и видео от SpaceXAI" + (lambda p: f", {p}" if p else "")(place("image", r"grok|imagine", "картинок", "в топ-5 рейтинга Artificial Analysis")) + ".", "https://grok.com/imagine"),
+    ("Grok Imagine", "Изображения и видео от SpaceXAI" + (lambda p: f", {p}" if p else "")(place("image", r"grok|imagine", "картинок", "в топ-5 рейтинга Artificial Analysis")) + ".", "https://grok.com/imagine"),
     ("FLUX", "Модели Black Forest Labs" + (lambda n: f", актуальная {n}" if n else "")(media("image", r"^FLUX", "")) + ". Есть открытые веса и API.", "https://bfl.ai"),
 ])
 m += h3("Видео")
 m += grid([
     (retitle("Veo 3.1 и Google Flow", f"{media('video', r'^Veo', 'Veo 3.1')} и Google Flow"),
-     "Видео со звуком по тексту и картинкам. Flow это студия Google для монтажа сцен.", "https://flow.google.com"),
+     "Видео со звуком по тексту и изображениям. Flow — студия Google для монтажа сцен.", "https://flow.google.com"),
     (retitle("Gemini Omni Flash", media("video", r"^Gemini", "Gemini Omni Flash")),
      "Создание и правка видео в диалоге: «убери человека слева», «сделай закат».", "https://deepmind.google/models/gemini-omni/"),
     (retitle("Seedance 2.5", media("video", r"Seedance", "Seedance 2.5")),
@@ -322,7 +323,7 @@ m += grid([
     ("Hailuo", f"Модель {media('video', r'^(MiniMax|Hailuo)', 'MiniMax H3')}: ролики в 2K до 15 секунд со стереозвуком.", "https://hailuoai.video"),
     ("Runway", "Профессиональный видеоредактор с ИИ.", "https://runway.com"),
     ("CapCut", "Популярный видеоредактор с ИИ-инструментами: субтитры, эффекты, монтаж.", "https://www.capcut.com"),
-    ("VEED", "Видеоредактор прямо в браузере: автосубтитры, перевод и озвучка, ИИ-аватары, чистка звука. Удобен для роликов в соцсети.", "https://www.veed.io"),
+    ("VEED", "Видеоредактор в браузере: автосубтитры, перевод и озвучка, ИИ-аватары, шумоподавление. Удобен для роликов в социальных сетях.", "https://www.veed.io"),
 ])
 m += h3("Аватары и перевод видео")
 m += grid([
@@ -342,12 +343,12 @@ m += grid([
     ("Figma Make", "Кликабельный прототип интерфейса по описанию.", "https://www.figma.com/make/"),
 ])
 out.append(sec("media", "04", "Креативы: фото, видео, голос",
-               "Многие сервисы дают доступ к чужим моделям, поэтому одна и та же модель встречается в разных местах. Выбирайте по удобству и цене.", tabify(m)))
+               "Многие сервисы работают на моделях сторонних разработчиков, поэтому одна и та же модель встречается в разных местах. Выбирайте по удобству и цене.", tabify(m)))
 
 # 6. tools
 t = h3("Сайты и приложения без программирования")
 t += grid([
-    ("Lovable", "Описываете словами, получаете рабочий сайт с базой данных. Публикация в один клик.", "https://lovable.dev"),
+    ("Lovable", "По текстовому описанию создаёт рабочий сайт с базой данных. Публикация в один клик.", "https://lovable.dev"),
     ("Base44", "Бизнес-приложения по описанию: CRM, заявки, внутренние порталы.", "https://base44.com"),
     ("Google AI Studio Build", "Приложение по описанию с базой, авторизацией и публикацией в Google Cloud.", "https://aistudio.google.com/apps", None, False, "aistudio.google.com"),
     ("Claude Artifacts", "Интерактивные страницы и мини-приложения прямо в чате Claude.", "https://claude.ai"),
@@ -359,7 +360,7 @@ t += grid([
     ("Gemini Notebook", "Бывший NotebookLM. Отвечает только по вашим источникам, делает аудио- и видеопересказ, презентации, тесты.", "https://notebook.google.com"),
     ("Gamma", "Презентации, документы и сайты по описанию. Экспорт в PowerPoint и PDF.", "https://gamma.app"),
     ("Napkin AI", "Превращает текст в схемы и инфографику.", "https://www.napkin.ai"),
-    ("Julius AI", "Загружаете таблицу, задаёте вопрос, получаете анализ и графики.", "https://julius.ai"),
+    ("Julius AI", "Загрузите таблицу и задайте вопрос — сервис подготовит анализ и графики.", "https://julius.ai"),
 ])
 t += h3("Встречи", "Сначала проверьте встроенные функции: Google Meet, Zoom и Teams уже умеют делать конспект встречи.")
 t += grid([
@@ -379,35 +380,35 @@ c += grid([
     ("Google AI Studio", "Модели Gemini, есть бесплатный лимит.", "https://aistudio.google.com"),
     ("OpenRouter", "Один ключ для сотен моделей разных компаний.", "https://openrouter.ai"),
     ("Groq", "Очень быстрые ответы открытых моделей. Не путать с Grok от SpaceXAI: это разные компании.", "https://groq.com"),
-    ("Cerebras", "Ещё один сервис сверхбыстрых ответов, часто быстрее Groq по числу слов в секунду.", "https://www.cerebras.ai"),
+    ("Cerebras", "Ещё одна платформа сверхбыстрых ответов, часто быстрее Groq по числу слов в секунду.", "https://www.cerebras.ai"),
     ("DeepSeek", "Одни из самых низких цен среди сильных моделей.", "https://platform.deepseek.com"),
 ])
-c += h3("Свой стек на сервере", "Когда данные нельзя отдавать наружу, ИИ поднимают внутри компании. Стек собирают слоями: "
+c += h3("Свой стек на сервере", "Когда данные нельзя передавать за пределы компании, ИИ разворачивают во внутренней инфраструктуре. Стек собирают по слоям: "
         "интерфейс для сотрудников, база знаний по документам, шлюз с лимитами и сам движок моделей.")
 c += grid([
     ("Open WebUI", "Интерфейс: привычный чат для сотрудников. Вход по логину, своя история, загрузка документов, права доступа.", "https://openwebui.com"),
-    ("Qdrant", "База знаний: хранит документы в виде векторов. Рабочий выбор для компании.", "https://qdrant.tech"),
-    ("Chroma", "База знаний попроще: стоит в Open WebUI по умолчанию, настраивать нечего. Для пилота.", "https://www.trychroma.com"),
+    ("Qdrant", "База знаний: хранит документы в виде векторов. Промышленное решение для компании.", "https://qdrant.tech"),
+    ("Chroma", "Более простая база знаний: встроена в Open WebUI по умолчанию и не требует настройки. Подходит для пилотного проекта.", "https://www.trychroma.com"),
     ("pgvector", "База знаний внутри PostgreSQL. Подходит, если PostgreSQL уже используется.", "https://github.com/pgvector/pgvector"),
-    ("RAGFlow", "Готовый сервер базы знаний с интерфейсом. Для сложных PDF и сканов, когда нет разработчиков.", "https://ragflow.io"),
+    ("RAGFlow", "Готовый сервер базы знаний с интерфейсом. Подходит для сложных PDF и сканов, если в команде нет разработчиков.", "https://ragflow.io"),
     ("LiteLLM", "Шлюз: отдельный ключ каждому сотруднику, лимиты по расходам, переключение между моделями.", "https://www.litellm.ai"),
-    ("vLLM", "Движок: держит сотни запросов одновременно. Ollama хватает одному человеку, компании нужен vLLM.", "https://docs.vllm.ai"),
+    ("vLLM", "Движок: обрабатывает сотни запросов одновременно. Ollama достаточно одному пользователю, компании нужен vLLM.", "https://docs.vllm.ai"),
     ("LlamaIndex", "Для разработчиков: сборка своей логики поиска по документам и агентов.", "https://www.llamaindex.ai"),
     ("LangChain", "Для разработчиков: каркас для цепочек запросов, инструментов и агентов.", "https://www.langchain.com"),
 ])
 c += h3("Запуск на своём компьютере", "Открытые модели DeepSeek, GLM, Qwen, Kimi и Xiaomi MiMo можно скачать и запустить без интернета.")
 c += grid([
     ("Hugging Face", "Главный каталог открытых моделей и датасетов.", "https://huggingface.co"),
-    ("LM Studio", "Программа для запуска моделей на компьютере в пару кликов.", "https://lmstudio.ai"),
+    ("LM Studio", "Программа для запуска моделей на компьютере в несколько кликов.", "https://lmstudio.ai"),
     ("Ollama", "Запуск моделей из командной строки или приложения.", "https://ollama.com"),
     ("Jan", "Бесплатная программа с открытым кодом для Windows, Mac и Linux.", "https://www.jan.ai"),
     '<div class="card"><b>' + logo("PocketPal") + 'PocketPal</b><p>' + T("Небольшие модели на телефоне, без интернета.") + '</p><small><a href="https://play.google.com/store/apps/details?id=com.pocketpalai" target="_blank" rel="noopener" style="text-decoration:underline">Android</a> · <a href="https://apps.apple.com/kz/app/pocketpal-ai/id6502579498" target="_blank" rel="noopener" style="text-decoration:underline">iOS</a></small></div>',
 ])
-c += h3("Оборудование", "Чтобы держать модель у себя, нужна общая память: чем её больше, тем крупнее модель поместится.")
+c += h3("Оборудование", "Для работы модели на своём оборудовании нужна общая память: чем её больше, тем крупнее модель можно запустить.")
 c += grid([
-    ("NVIDIA DGX Spark", "Настольный ИИ-компьютер на Linux со 128 ГБ общей памяти. Выпускается, снят с продажи не был.", "https://www.nvidia.com/en-us/products/workstations/dgx-spark/"),
+    ("NVIDIA DGX Spark", "Настольный ИИ-компьютер на Linux со 128 ГБ общей памяти.", "https://www.nvidia.com/en-us/products/workstations/dgx-spark/"),
     ("NVIDIA RTX Spark", "Ноутбуки и компактные ПК на Windows: чип Grace Blackwell, до 128 ГБ общей памяти.", "https://nvidianews.nvidia.com/news/nvidia-microsoft-windows-pcs-agents-rtx-spark", "новое"),
-    ("Мини-ПК на AMD Ryzen AI Max+", "Дешёвая альтернатива DGX Spark: до 128 ГБ памяти.", "https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html"),
+    ("Мини-ПК на AMD Ryzen AI Max+", "Более доступная альтернатива DGX Spark: до 128 ГБ памяти.", "https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html"),
     ("Mac Studio", "Apple Silicon с большой общей памятью: тихий вариант для небольшой команды.", "https://www.apple.com/mac-studio/"),
 ])
 c += h3("Дообучение моделей", "Нужно, когда важен строгий формат ответа или свой стиль. Чтобы ИИ просто отвечал по вашим документам, "
@@ -415,13 +416,13 @@ c += h3("Дообучение моделей", "Нужно, когда важе�
 c += grid([
     ("Unsloth", "Дообучение на одной видеокарте: быстрее и экономнее обычного способа.", "https://unsloth.ai"),
     ("LLaMA Factory", "Дообучение открытых моделей через интерфейс, без своего кода.", "https://github.com/hiyouga/LLaMA-Factory"),
-    ("OpenAI Fine-tuning", "Дообучение в облаке: загрузить примеры и нажать кнопку, специалисты не нужны.", "https://platform.openai.com/docs/guides/fine-tuning", None, False, "platform.openai.com"),
+    ("OpenAI Fine-tuning", "Дообучение в облаке: достаточно загрузить примеры и запустить обучение, отдельные специалисты не нужны.", "https://platform.openai.com/docs/guides/fine-tuning", None, False, "platform.openai.com"),
     ("Google Vertex AI", "Дообучение и запуск моделей в облаке Google.", "https://cloud.google.com/vertex-ai"),
 ])
-out.append(sec("company", "06", "ИИ в своей компании", None, tabify(c)))
+out.append(sec("company", "06", "ИИ в компании", None, tabify(c)))
 
 # 8. detect
-d = h3("Фото, видео и аудио", "Если метки нет, это ещё не значит, что файл создал человек.")
+d = h3("Фото, видео и аудио", "Отсутствие метки не означает, что файл создан человеком.")
 d += grid([
     ("SynthID Detector", "Проверяет фото, видео и аудио на скрытую метку ИИ от Google, OpenAI, NVIDIA и Kakao. Бесплатно, около 10 проверок в день.", "https://synthid.com", "новое"),
 ])
@@ -430,10 +431,10 @@ d += grid([
     ("Pangram", "Детектор с самой низкой долей ложных срабатываний в независимых исследованиях.", "https://www.pangram.com"),
     ("GPTZero", "Популярный детектор, теперь часть Superhuman (Grammarly).", "https://gptzero.me"),
     ("Originality.ai", "Детектор с настройкой допустимой доли ИИ-текста, проверка плагиата и фактов.", "https://originality.ai"),
-    ("Turnitin", "Стандарт в университетах.", "https://www.turnitin.com/solutions/topics/ai-writing/", None, False, "turnitin.com"),
+    ("Turnitin", "Стандарт проверки в университетах.", "https://www.turnitin.com/solutions/topics/ai-writing/", None, False, "turnitin.com"),
     ("Copyleaks", "Детектор и проверка плагиата на 30+ языках.", "https://copyleaks.com/ai-content-detector"),
 ])
-d += '<p class="note">' + T("<b>Детекторам нельзя верить на слово.</b> Они часто принимают текст человека за ИИ-текст, особенно если автор пишет не на родном языке. Используйте результат как повод присмотреться, а не как доказательство.") + "</p>"
+d += '<p class="note">' + T("<b>Результат детектора — не доказательство.</b> Детекторы часто принимают текст человека за ИИ-текст, особенно если автор пишет не на родном языке. Используйте его как основание для дополнительной проверки, а не как окончательный вывод.") + "</p>"
 d += h3("Проверка на плагиат")
 d += grid([
     ("Grammarly", "Проверка плагиата бесплатно, полная версия в Grammarly Pro.", "https://www.grammarly.com/plagiarism-checker"),

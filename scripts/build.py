@@ -1,4 +1,4 @@
-import hashlib, html, json, os, re, runpy, shutil
+import hashlib, html, json, math, os, re, runpy, shutil
 from datetime import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,6 +56,14 @@ def load_data():
     return json.load(open(path, encoding="utf-8"))
 
 
+def nice_step(top):
+    """Round step for the scale behind the columns, same rule as in script.js."""
+    raw = top / 5
+    p = 10 ** math.floor(math.log10(raw)) if raw > 0 else 1
+    m = raw / p
+    return (1 if m <= 1 else 2 if m <= 2 else 2.5 if m <= 2.5 else 5 if m <= 5 else 10) * p
+
+
 def chart(data):
     models = data["models"][:30]
     top = max(m["score"] for m in models)
@@ -69,8 +77,13 @@ def chart(data):
         if m["creator"] not in seen:
             seen.add(m["creator"])
             legend.append(f'<span><i style="background:{c}"></i>{creator}</span>')
+    step, grid, v = nice_step(top), [], 0.0
+    while v <= top + step / 2:                       # the page ships the scale; script.js redraws it per tab
+        grid.append(f'<i class="{"" if v else "z"}" style="--g:{v / top * 100:.2f}%"><b>{v:g}</b></i>')
+        v += step
     d = datetime.fromisoformat(data["updated"].replace("Z", "+00:00"))
-    return len(models), "".join(bars), "".join(legend), T("Обновлено {date} · обновляется ежедневно").replace("{date}", human_date(d))
+    return (len(models), "".join(bars), "".join(legend),
+            T("Обновлено {date} · обновляется ежедневно").replace("{date}", human_date(d)), "".join(grid))
 
 
 TABS = [("cost", "Интеллект и цена", ("cost",),
@@ -121,7 +134,8 @@ def rnd(v):
 
 
 def sp(v):
-    return f"{v:,}".replace(",", "\u00a0")
+    # thin space between thousands in Russian, a comma in English
+    return f"{v:,}" if LANG != "ru" else f"{v:,}".replace(",", "\u00a0")
 
 
 def ver(name):
@@ -294,12 +308,12 @@ UI = {"locale": "ru-RU", "sec": " с", "min": " мин", "hour": " ч", "k": " �
       "pick": "Выберите модели в списке справа.", "noData": "Не удалось загрузить данные. Обновите страницу.",
       "capScore": "Топ-{n} моделей, баллы из 100", "capOmni": "Итоговый балл от −100 до 100",
       "capAcc": "Доля верных ответов", "capHall": "Доля выдуманных ответов, меньше — лучше", "capField": "Баллы из 100",
-      "noteOmni": "За верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль. Ниже нуля — модель чаще выдумывает, чем знает.",
+      "noteOmni": "За верный ответ балл начисляется, за выдуманный — вычитается, за ответ «не знаю» — ноль. Значение ниже нуля означает, что модель чаще выдумывает ответ, чем отвечает верно.",
       "noteAcc": "Сколько вопросов на знания модель ответила верно. Больше — лучше.",
-      "noteHall": "Как часто модель выдумывает ответ, когда должна была сказать «не знаю». Меньше — лучше.",
+      "noteHall": "Как часто модель выдумывает ответ вместо ответа «не знаю». Меньше — лучше.",
       "bestCost": "Самые выгодные: ", "bestTime": "Самые быстрые для своего уровня: ",
-      "bestHint": ". Наведите на точку, чтобы увидеть цену и уровень размышлений.",
-      "of": " из ", "showAll": "Показать все ", "collapse": "Свернуть", "preparing": "Готовим…",
+      "bestHint": ". Наведите курсор на точку, чтобы увидеть цену и уровень размышлений.",
+      "of": " из ", "showAll": "Показать все ", "collapse": "Свернуть", "preparing": "Подготовка…",
       "nothing": "Ничего не найдено", "ratingTitle": "Рейтинг моделей", "valueTitle": "Какая модель выгоднее",
       "credit1": "Источник: Artificial Analysis · artificialanalysis.ai",
       "credit2": "Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide"}
@@ -328,12 +342,12 @@ def render(lang):
     body = runpy.run_path(os.path.join(SRC, "content.py"),
                           init_globals={"MODELS": data.get("by_creator", {}), "MEDIA": data.get("media", {}),
                                         "EXTRA": data.get("extra", {}), "BASE": BASE, "LANG": LANG, "T": T})["BODY"]
-    count, bars, legend, date = chart(data)
+    count, bars, legend, date, grid = chart(data)
     sub_tabs, sub_panels = subscriptions(data)
     cmp_html = compare(data)
     body = (body.replace("{RATING_TABS}", rating_tabs(data, bool(cmp_html))).replace("{SUBS_TABS}", sub_tabs)
             .replace("{SUBS_PANELS}", sub_panels).replace("{COMPARE}", cmp_html).replace("{CHART_N}", str(count))
-            .replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date))
+            .replace("{CHART_BARS}", bars).replace("{CHART_GRID}", grid).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date))
 
     ui = {k: T(v) for k, v in UI.items()}
     ui["locale"] = "ru-RU" if lang == "ru" else "en-US"
