@@ -79,7 +79,8 @@ def chart(data):
             legend.append(f'<span><i style="background:{c}"></i>{creator}</span>')
     step, grid, v = nice_step(top), [], 0.0
     while v <= top + step / 2:                       # the page ships the scale; script.js redraws it per tab
-        grid.append(f'<i class="{"" if v else "z"}" style="--g:{v / top * 100:.2f}%"><b>{v:g}</b></i>')
+        if v:                                        # no line at zero: it would run into the logos
+            grid.append(f'<i style="--g:{v / top * 100:.2f}%"><b>{v:g}</b></i>')
         v += step
     d = datetime.fromisoformat(data["updated"].replace("Z", "+00:00"))
     return (len(models), "".join(bars), "".join(legend),

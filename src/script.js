@@ -388,7 +388,7 @@ function ratingSvg(list, caption, pct, colors, desc){
   // Dotted scale, as on Artificial Analysis: the zero line solid, the rest dotted.
   scaleTicks(pos, neg + pad).forEach(function(v){
     var gy = zero - v / max * ih;
-    if(gy < M.t - 1 || gy > M.t + ih + 1) return;
+    if((!v && !neg) || gy < M.t - 1 || gy > M.t + ih + 1) return;
     el("line", {x1:M.l, x2:W - M.r, y1:gy, y2:gy, stroke:"#e1e1e6", "stroke-dasharray": v ? "2 4" : null}, svg);
     svgText(svg, M.l - 10, gy + 4, Math.round(v) + (pct ? "%" : ""), {size:11, fill:"#747480", anchor:"end"});
   });
@@ -490,7 +490,7 @@ function initRating(){
     ol.style.setProperty("--z", ((neg + pad)/max*100).toFixed(2)+"%");
     if(grid) grid.innerHTML = scaleTicks(pos, neg + pad).map(function(v){
       var y = ((neg + pad + v)/max*100);
-      return y < -0.5 || y > 100.5 ? "" :
+      return (!v && !neg) || y < -0.5 || y > 100.5 ? "" :
         '<i class="'+(v ? "" : "z")+'" style="--g:'+y.toFixed(2)+'%"><b>'+(Math.round(v)+(pct ? "%" : ""))+'</b></i>';
     }).join("");
     ol.innerHTML = list.map(function(m, i){
