@@ -73,7 +73,8 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .bar{display:flex;flex-direction:column;align-items:stretch;flex:1 1 0;min-width:0;padding:0;transition:opacity .15s;cursor:default}
 #eyai .bars:hover .bar{opacity:.4}
 #eyai .bars .bar:hover{opacity:1}
-#eyai .bar .t{order:1;flex:1;height:auto;background:none;display:flex;align-items:flex-end;border-bottom:1px solid var(--line)}
+#eyai .bar .t{order:1;flex:1;height:auto;background:none;position:relative}
+#eyai .bar .t::after{content:"";position:absolute;left:-3px;right:-3px;bottom:var(--z,0%);border-top:1px solid var(--line)}
 #eyai .bar .f{width:100%;height:var(--w);min-width:0;padding:8px 0 0;align-items:flex-start;justify-content:center;border-radius:0;font-size:13px;transition:height .8s ease}
 #eyai .bar .i{display:none}
 #eyai .bar .lo{order:2;display:flex;justify-content:center;align-items:center;height:32px}
@@ -81,9 +82,11 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .bar .n > span{position:absolute;right:50%;top:0;width:112px;font-size:12px;text-align:right;transform-origin:100% 0;transform:rotate(-45deg);white-space:normal}
 #eyai .bar .n small{display:none}
 #eyai .bar:hover .n{font-weight:700}
-#eyai .bar .f{position:relative}
+#eyai .bar .f{position:absolute;left:0;right:0;bottom:var(--z,0%);display:flex}
+#eyai .bar.neg .f{bottom:auto;top:calc(100% - var(--z,0%))}
 #eyai .bar .f.sm{color:var(--ink)}
 #eyai .bar .f.sm em{position:absolute;bottom:100%;left:0;right:0;text-align:center;padding-bottom:4px}
+#eyai .bar.neg .f.sm em{bottom:auto;top:100%;padding:4px 0 0}
 }
 
 /* notes, tables, lists */
@@ -243,7 +246,6 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 
 /* rating tabs */
 #eyai .bar .f em{font-style:normal}
-#eyai .bar.neg .f{opacity:.5}
 #eyai .rt{margin:-4px 0 18px}
 #eyai .rt-tabs,#eyai .rt-subs,#eyai .pl-tabs{display:flex;flex-wrap:wrap;gap:8px}
 #eyai .rt-subs{margin-top:10px}
@@ -302,3 +304,9 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .pl-k td:first-child{white-space:nowrap}
 #eyai .pl-k .pl-h th{text-align:left}
 #eyai .pl-k .pl-h th:first-child{color:var(--ink2)!important;font-weight:400!important}
+/* the comparison lives inside the rating block as a tab */
+#eyai .rt-main[hidden],#eyai .rt-value[hidden]{display:none}
+#eyai .rt-value .cmp{margin:0}
+#eyai .rt-value .cmp-box{border:0;padding:0;background:none}
+#eyai .rt-value .cmp-tabs button{font-size:13px;padding:5px 11px;background:var(--bg)}
+#eyai .rt-value .cmp-tabs button.on{background:var(--y)}

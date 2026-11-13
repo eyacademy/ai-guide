@@ -80,8 +80,6 @@ def compare(data):
     sub_html = "".join(f'<button type="button" data-sub="{k}"{" class=on" if n == 0 else ""}>{t}</button>' for n, (k, t) in enumerate(subs))
     colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)
     return (f'<div class="cmp" data-colors="{colors}">'
-            f'<h3>Какая модель выгоднее</h3><p class="cap">Наведите на точку или столбец, чтобы увидеть подробности. '
-            f'Справа можно выбрать модели и уровни размышлений. Цена задачи — средняя стоимость одной задачи из рейтинга по ценам API.</p>'
             f'<div class="cmp-box"><div class="cmp-tabs">{tab_html}</div>'
             f'<div class="cmp-bar"><div class="cmp-subs" hidden>{sub_html}</div>'
             f'<div class="cmp-ctl"><span class="cmp-seg"><button type="button" data-scale="log" class=on>Лог</button>'
@@ -204,11 +202,17 @@ RT = [("score", "Интеллект", [("score", "")],
        "Как модель справляется с рабочими задачами в отдельной сфере. Больше — лучше.")]
 
 
-def rating_tabs(data):
+VALUE_NOTE = ("Какая модель выгоднее. Наведите на точку или столбец, чтобы увидеть подробности, справа можно выбрать модели "
+              "и уровни размышлений. Цена задачи — средняя стоимость одной задачи из рейтинга по ценам API.")
+
+
+def rating_tabs(data, value=False):
     rows = data.get("bench") or []
     has = lambda k: k == "score" or sum(1 for m in rows if m.get(k) is not None) >= 5
     tabs = [(i, t, [s for s in subs if has(s[0])], note) for i, t, subs, note in RT]
     tabs = [t for t in tabs if t[2]]
+    if value:
+        tabs.append(("value", "Цена и выгода", [], VALUE_NOTE))
     if len(tabs) < 2:
         return ""
     colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)
@@ -243,7 +247,8 @@ json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="
 body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {}), "BASE": BASE})["BODY"]
 count, bars, legend, date = chart(data)
 sub_tabs, sub_panels = subscriptions(data)
-body = body.replace("{RATING_TABS}", rating_tabs(data)).replace("{SUBS_TABS}", sub_tabs).replace("{SUBS_PANELS}", sub_panels).replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
+cmp_html = compare(data)
+body = body.replace("{RATING_TABS}", rating_tabs(data, bool(cmp_html))).replace("{SUBS_TABS}", sub_tabs).replace("{SUBS_PANELS}", sub_panels).replace("{COMPARE}", cmp_html).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
 body = body.replace("{VERSION}", version, 1)

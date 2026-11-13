@@ -320,23 +320,29 @@ function initRating(){
     var list = (metric==="score" ? d.models.map(function(m){ return {name:m.name, creator:m.creator, effort:m.effort, v:m.score}; })
       : (d.bench||[]).filter(function(m){ return m[metric]!=null; }).map(function(m){ return {name:m.name, creator:m.creator, effort:m.effort, v:m[metric]}; }))
       .sort(function(a,b){ return asc ? a.v-b.v : b.v-a.v; }).slice(0, 30);
-    var max = Math.max.apply(0, list.map(function(m){ return Math.abs(m.v); })) || 1, seen = {}, leg = [];
+    // Zero line sits above the bottom when some values are negative; bars below it hang down.
+    var vals = list.map(function(m){ return m.v; }), pos = Math.max(0, Math.max.apply(0, vals)), neg = Math.max(0, -Math.min.apply(0, vals));
+    var pad = neg ? (pos + neg)*0.09 : 0, max = (pos + neg + pad) || 1, seen = {}, leg = [];
+    ol.style.setProperty("--z", ((neg + pad)/max*100).toFixed(2)+"%");
     ol.innerHTML = list.map(function(m, i){
-      var c = colorFrom(colors, m.creator), f = logoFile(m.creator), w = Math.max(3, Math.round(Math.abs(m.v)/max*100));
+      var c = colorFrom(colors, m.creator), f = logoFile(m.creator), w = Math.max(m.v ? 2 : 0.6, Math.abs(m.v)/max*100).toFixed(2);
       var name = esc(m.name + (m.effort ? " ("+m.effort+")" : "")), r = Math.round(m.v), val = (r<0 ? "−" : "") + Math.abs(r) + (pct ? "%" : "");
       if(!seen[m.creator]){ seen[m.creator] = 1; leg.push('<span><i style="background:'+c+'"></i>'+esc(m.creator)+'</span>'); }
       var lo = f ? '<img src="'+BASE+'logos/'+f+'" width="20" height="20" alt="">' : '<b class="lgl" style="--c:'+c+'">'+esc(m.creator.charAt(0).toUpperCase())+'</b>';
       return '<li class="bar'+(m.v<0 ? " neg" : "")+'" title="'+name+' · '+esc(m.creator)+' · '+val+'"><span class="i">'+(i+1)+'</span><span class="lo">'+lo+'</span>'+
-        '<span class="n"><span>'+name+'</span><small>'+esc(m.creator)+'</small></span><span class="t"><span class="f'+(w<14 ? " sm" : "")+'" style="--c:'+c+';--w:'+w+'%"><em>'+val+'</em></span></span></li>';
+        '<span class="n"><span>'+name+'</span><small>'+esc(m.creator)+'</small></span><span class="t"><span class="f'+(w<14 || m.v<0 ? " sm" : "")+'" style="--c:'+c+';--w:'+w+'%"><em>'+val+'</em></span></span></li>';
     }).join("");
     legend.innerHTML = leg.join("");
     cap.textContent = metric==="score" ? "Топ-"+list.length+" моделей, баллы из 100" : RT_CAP[metric];
     note.textContent = RT_NOTE[metric] || tabNote;
     if(dateEl) dateEl.textContent = (tab==="know" && d.knowledge_note) ? d.knowledge_note : dateText;
   }
+  var main = chart.querySelector(".rt-main"), value = chart.querySelector(".rt-value");
   function show(){
     var subs = rt.querySelectorAll(".rt-subs");
     for(var i=0;i<subs.length;i++) subs[i].hidden = subs[i].getAttribute("data-for")!==tab;
+    if(value){ value.hidden = tab!=="value"; main.hidden = tab==="value"; }
+    if(tab==="value"){ note.textContent = tabNote; window.dispatchEvent(new Event("resize")); return; }
     loadData().then(function(d){ LOGOS = d.logos || LOGOS; render(d); }).catch(function(){});
   }
   rt.addEventListener("click", function(e){
