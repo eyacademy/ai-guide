@@ -2,6 +2,8 @@ import json, os, re, urllib.error, urllib.request
 from datetime import datetime, timedelta, timezone
 
 API = "https://artificialanalysis.ai/api/v2/language/models"
+# Arena rankings for pictures, video and sound; the free tier returns name, creator and elo.
+MEDIA = {"image": "text-to-image", "video": "text-to-video", "speech": "text-to-speech", "music": "music/instrumental"}
 PUBLISHED = "https://eyacademy.github.io/ai-guide/data/aa-index.json"
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_site", "data", "aa-index.json")
 
@@ -72,6 +74,26 @@ def pages(url, key):
     return models
 
 
+def media(key):
+    """Model names of one media arena, best first. Empty when the tier has no access."""
+    out = {}
+    for kind, path in MEDIA.items():
+        try:
+            body = get(f"https://artificialanalysis.ai/api/v2/media/{path}/models/free", {"x-api-key": key})
+            rows = body.get("data") or []
+        except Exception as e:
+            print("media", kind, "failed:", e)
+            continue
+        best = {}
+        for m in rows:
+            name = re.sub(r"\s*\([^)]*\)\s*$", "", m.get("name") or "").strip()
+            elo = m.get("elo")
+            if name and isinstance(elo, (int, float)) and elo > best.get(name, -1):
+                best[name] = elo
+        out[kind] = sorted(best, key=lambda n: -best[n])
+    return out
+
+
 def fetch():
     key = os.environ["AA_API_KEY"]
     try:
@@ -113,12 +135,13 @@ def fetch():
     prices = {m["name"]: m["price"] for m in current if all(m["price"])}
     benches = [{"name": m["name"], "creator": m["creator"], "effort": m["effort"], **m["bench"]}
                for m in current if m["bench"] and m["released"] >= year_ago]
-    return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator,
+    return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator, "media": media(key),
             "variants": variants, "default": default, "prices": prices, "bench": benches}
 
 try:
     data = fetch()
     print("fetched", len(data["models"]), "models,", len(data["variants"]), "variants with cost or time")
+    print("media:", {k: len(v) for k, v in (data.get("media") or {}).items()})
 except Exception as e:
     print("API failed:", e)
     try:

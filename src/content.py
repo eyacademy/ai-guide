@@ -47,6 +47,34 @@ def model(creator, fallback):
     return models(creator, [fallback], 1)[0]
 
 
+# Pictures, video and sound: names come from the Artificial Analysis arenas, newest version wins.
+MEDIA = globals().get("MEDIA") or {}
+
+
+def media(kind, pattern, fallback):
+    hits = [n for n in MEDIA.get(kind) or [] if re.search(pattern, n, re.I)]
+    name = max(hits, key=lambda n: tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", n)) or (0,)) if hits else fallback
+    if fallback and fallback in LOGO:
+        LOGO.setdefault(name, LOGO[fallback])
+    return name
+
+
+def retitle(old, new):
+    """A card keeps its logo when a new model version changes its title."""
+    if old in LOGO:
+        LOGO.setdefault(new, LOGO[old])
+    return new
+
+
+def place(kind, pattern, what, default=""):
+    """«первое место в рейтинге видео …», пусто за пределами топ-5."""
+    for i, n in enumerate(MEDIA.get(kind) or [], 1):
+        if re.search(pattern, n, re.I):
+            return f"первое место в рейтинге {what} Artificial Analysis" if i == 1 else (
+                f"{i}-е место в рейтинге {what} Artificial Analysis" if i <= 5 else "")
+    return default
+
+
 VENDORS = []
 
 
@@ -238,20 +266,26 @@ m += grid([
 ])
 m += h3("Изображения")
 m += grid([
-    ("ChatGPT Images 2.5", "Генерация и точное редактирование прямо в ChatGPT. Читаемый текст на картинках, в том числе на кириллице.", "https://chatgpt.com"),
-    ("Nano Banana 2 и Pro", "Модели Google для изображений, работают в приложении Gemini.", "https://deepmind.google/models/gemini-image/"),
-    ("Midjourney", "Художественная генерация с сильным стилем. Версия V8.2.", "https://www.midjourney.com"),
-    ("Grok Imagine", "Картинки и видео от SpaceXAI, в топ-5 рейтинга Artificial Analysis.", "https://grok.com/imagine"),
-    ("FLUX", "Модели Black Forest Labs. Есть открытые веса и API.", "https://bfl.ai"),
+    (retitle("ChatGPT Images 2.5", media("image", r"^(GPT|ChatGPT) Image", "ChatGPT Images 2.5")),
+     "Генерация и точное редактирование прямо в ChatGPT. Читаемый текст на картинках, в том числе на кириллице.", "https://chatgpt.com"),
+    (retitle("Nano Banana 2 и Pro", media("image", r"^Nano Banana", "Nano Banana 2")),
+     "Модель Google для изображений, работает в приложении Gemini.", "https://deepmind.google/models/gemini-image/"),
+    ("Midjourney", f"Художественная генерация с сильным стилем. Версия {media('image', r'^Midjourney', 'Midjourney V8.2').replace('Midjourney ', '')}.", "https://www.midjourney.com"),
+    ("Grok Imagine", "Картинки и видео от SpaceXAI" + (lambda p: f", {p}" if p else "")(place("image", r"grok|imagine", "картинок", "в топ-5 рейтинга Artificial Analysis")) + ".", "https://grok.com/imagine"),
+    ("FLUX", "Модели Black Forest Labs" + (lambda n: f", актуальная {n}" if n else "")(media("image", r"^FLUX", "")) + ". Есть открытые веса и API.", "https://bfl.ai"),
 ])
 m += h3("Видео")
 m += grid([
-    ("Veo 3.1 и Google Flow", "Видео со звуком по тексту и картинкам. Flow это студия Google для монтажа сцен.", "https://flow.google.com"),
-    ("Gemini Omni Flash", "Создание и правка видео в диалоге: «убери человека слева», «сделай закат».", "https://deepmind.google/models/gemini-omni/"),
-    ("Seedance 2.5", "Модель ByteDance: ролики до 30 секунд. Доступна в Dreamina (CapCut) и Higgsfield.", "https://dreamina.capcut.com"),
-    ("Kling", "Реалистичное видео и «оживление» фото. Kling 3.0, версия 4.0 выходит в октябре.", "https://kling.ai"),
-    ("Wan 3.0", "Модель Alibaba, первое место в рейтинге видео Artificial Analysis. Ролики до 30 секунд со звуком.", "https://wan.video"),
-    ("Hailuo", "Модель MiniMax H3: ролики в 2K до 15 секунд со стереозвуком.", "https://hailuoai.video"),
+    (retitle("Veo 3.1 и Google Flow", f"{media('video', r'^Veo', 'Veo 3.1')} и Google Flow"),
+     "Видео со звуком по тексту и картинкам. Flow это студия Google для монтажа сцен.", "https://flow.google.com"),
+    (retitle("Gemini Omni Flash", media("video", r"^Gemini", "Gemini Omni Flash")),
+     "Создание и правка видео в диалоге: «убери человека слева», «сделай закат».", "https://deepmind.google/models/gemini-omni/"),
+    (retitle("Seedance 2.5", media("video", r"^Seedance", "Seedance 2.5")),
+     "Модель ByteDance: ролики до 30 секунд. Доступна в Dreamina (CapCut) и Higgsfield.", "https://dreamina.capcut.com"),
+    ("Kling", f"Реалистичное видео и «оживление» фото. Актуальная модель — {media('video', r'^Kling', 'Kling 3.0')}.", "https://kling.ai"),
+    (retitle("Wan 3.0", media("video", r"^Wan", "Wan 3.0")),
+     "Модель Alibaba" + (lambda p: f", {p}" if p else "")(place("video", r"^Wan", "видео", "первое место в рейтинге видео Artificial Analysis")) + ". Ролики до 30 секунд со звуком.", "https://wan.video"),
+    ("Hailuo", f"Модель {media('video', r'^(MiniMax|Hailuo)', 'MiniMax H3')}: ролики в 2K до 15 секунд со стереозвуком.", "https://hailuoai.video"),
     ("Runway", "Профессиональный видеоредактор с ИИ.", "https://runway.com"),
     ("CapCut", "Популярный видеоредактор с ИИ-инструментами: субтитры, эффекты, монтаж.", "https://www.capcut.com"),
     ("VEED", "Видеоредактор прямо в браузере: автосубтитры, перевод и озвучка, ИИ-аватары, чистка звука. Удобен для роликов в соцсети.", "https://www.veed.io"),
@@ -264,8 +298,8 @@ m += grid([
 ])
 m += h3("Голос и музыка")
 m += grid([
-    ("ElevenLabs", "Озвучка, клонирование голоса, дубляж. Лучшая модель речи в рейтинге, распознаёт казахскую речь.", "https://elevenlabs.io"),
-    ("Suno", "Песни и фоновая музыка по описанию. Версия v6.", "https://suno.com"),
+    ("ElevenLabs", "Озвучка, клонирование голоса, дубляж" + (lambda p: f", {p}" if p else "")(place("speech", r"eleven", "речи", "лучшая модель речи в рейтинге")) + ". Распознаёт казахскую речь.", "https://elevenlabs.io"),
+    ("Suno", f"Песни и фоновая музыка по описанию. Версия {media('music', r'^Suno', 'Suno v6').replace('Suno ', '')}.", "https://suno.com"),
 ])
 m += h3("Дизайн")
 m += grid([

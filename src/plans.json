@@ -5,13 +5,15 @@
     "Ответов модели в месяц = budget × x × share ÷ стоимость одного ответа; стоимость ответа = response_usd базовой модели × её цена ÷ цена базовой.",
     "Цены моделей и их актуальные названия подтягиваются из Artificial Analysis каждую ночь.",
     "model — регулярное выражение для названия модели; берётся самая новая подходящая модель.",
-    "plans у модели — с какого тарифа (номер с 0) модель входит; free_from — с какого тарифа лимит почти не расходуется."
+    "model — регулярное выражение для названия модели; берётся самая новая подходящая. Если такой модели больше нет (например, линейку переименовали), берётся модель под номером rank среди моделей этого разработчика по силе — так таблица не ломается при новых названиях."
   ],
   "as_of": "ноябрь 2026",
   "base": {
     "model": "^Claude Opus",
     "fallback": "Claude Opus 5.5",
-    "response_usd": 2.9
+    "response_usd": 2.9,
+    "creator": "Anthropic",
+    "rank": 1
   },
   "providers": [
     {
@@ -55,13 +57,15 @@
             "оплата кредитами"
           ],
           "sub": "не больше 50% лимита",
-          "cap": 0.5
+          "cap": 0.5,
+          "rank": 1
         },
         {
           "model": "^Claude Opus",
           "fallback": "Claude Opus 5.5",
           "role": "основная для работы",
-          "tasks": true
+          "tasks": true,
+          "rank": 2
         },
         {
           "combo": [
@@ -76,17 +80,20 @@
           "model": "^Claude Sonnet",
           "fallback": "Claude Sonnet 5.5",
           "role": "быстрая, для типовых задач",
-          "sub_first": "≈ в {ratio} раза больше Opus"
+          "sub_first": "≈ в {ratio} раза больше Opus",
+          "rank": 3
         },
         {
           "model": "^Claude Haiku",
           "fallback": "Claude Haiku 5.5",
           "role": "лёгкая и самая дешёвая",
           "free_from": 0,
-          "free_text": "лимит почти не расходует — для простых задач практически без ограничений"
+          "free_text": "лимит почти не расходует — для простых задач практически без ограничений",
+          "rank": 4
         }
       ],
-      "logo": "claude-color.svg"
+      "logo": "claude-color.svg",
+      "creator": "Anthropic"
     },
     {
       "name": "ChatGPT",
@@ -141,29 +148,34 @@
           "model": "^GPT-[\\d.]+ Astra$",
           "fallback": "GPT-6 Astra",
           "role": "самая сильная",
-          "from": 1
+          "from": 1,
+          "rank": 1
         },
         {
           "model": "^GPT-[\\d.]+ Sol$",
           "fallback": "GPT-6.1 Sol",
           "role": "основная для работы",
-          "from": 1
+          "from": 1,
+          "rank": 2
         },
         {
           "model": "^GPT-[\\d.]+ Terra$",
           "fallback": "GPT-6.1 Terra",
           "role": "средняя",
-          "from": 1
+          "from": 1,
+          "rank": 3
         },
         {
           "model": "^GPT-[\\d.]+ Luna$",
           "fallback": "GPT-6 Luna",
           "role": "быстрая, базовая",
           "free_from": 2,
-          "free_text": "лимит почти не расходует — практически без ограничений"
+          "free_text": "лимит почти не расходует — практически без ограничений",
+          "rank": 4
         }
       ],
-      "logo": "openai.svg"
+      "logo": "openai.svg",
+      "creator": "OpenAI"
     }
   ]
 }

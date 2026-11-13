@@ -108,16 +108,30 @@ def ver(name):
     return tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", name)) or (0,)
 
 
-def resolve(prices, pattern, fallback):
-    hits = [n for n in prices if re.search(pattern, n)]
-    return max(hits, key=ver) if hits else (fallback if fallback in prices else None)
+def resolve(prices, pattern, fallback, data=None, creator=None, rank=None, used=()):
+    """Pick a model for a table row, surviving renamed model lines.
+
+    Current models first, then the creator's Nth strongest, then any priced name.
+    """
+    hits = [n for n in prices if re.search(pattern, n) and n not in used]
+    if hits:
+        return max(hits, key=ver)
+    if fallback in prices and fallback not in used:
+        return fallback
+    # The whole model line is gone: fall back to the creator's Nth strongest current model.
+    cur = [m["name"] for m in (data or {}).get("models") or []
+           if m.get("creator", "").lower() == (creator or "").lower() and m["name"] in prices]
+    if rank and len(cur) >= rank and cur[rank - 1] not in used:
+        print("resolve:", pattern, "->", cur[rank - 1], "(model line renamed)")
+        return cur[rank - 1]
+    return None
 
 
 def subscriptions(data):
     cfg = json.load(open(os.path.join(SRC, "plans.json"), encoding="utf-8"))
     prices = data.get("prices") or {}
     blend = lambda n: (3 * prices[n][0] + prices[n][1]) / 4
-    base = resolve(prices, cfg["base"]["model"], cfg["base"]["fallback"])
+    base = resolve(prices, cfg["base"]["model"], cfg["base"]["fallback"], data, cfg["base"].get("creator"), cfg["base"].get("rank"))
     if not base:
         return "", ""
     cost = lambda n: cfg["base"]["response_usd"] * blend(n) / blend(base)
@@ -137,10 +151,10 @@ def subscriptions(data):
         head = "".join(f'<th>{pl.get("short", pl["name"])}<br>${pl["price"]}</th>' for pl in pv["plans"])
         body = [f'<tr class="pl-lim"><td><b>{pv["limit_label"]}</b><small>{pv["limit_note"]}</small></td>'
                 + "".join(f'<td>{pl["limit"]}</td>' for pl in pv["plans"]) + "</tr>"]
-        resp = {}
+        resp, used = {}, {}
         for m in pv["models"]:
             if "combo" in m:
-                f_, o_ = (resolve(prices, x, None) for x in m["combo"])
+                f_, o_ = (used.get(x) for x in m["combo"])  # names the rows above actually used
                 if not (f_ and o_):
                     continue
                 cap = next((x.get("cap", 1) for x in pv["models"] if x.get("model") == m["combo"][0]), 1)
@@ -152,9 +166,10 @@ def subscriptions(data):
                         v = resp[f_][i] + (1 - cap) * resp[o_][i]
                         cells.append(f'<td><b>≈ {sp(rnd(v))}</b></td>')
             else:
-                name = resolve(prices, m["model"], m.get("fallback"))
+                name = resolve(prices, m["model"], m.get("fallback"), data, pv.get("creator"), m.get("rank"), set(used.values()))
                 if not name:
                     continue
+                used[m["model"]] = name
                 title, cells, n = short(name), [], len(pv["plans"])
                 resp[name] = [pv["budget"] * pl["x"] * m.get("share", 1) / cost(name) for pl in pv["plans"]]
                 free = m.get("free_from")
@@ -170,8 +185,8 @@ def subscriptions(data):
                     if m.get("tasks"):
                         sub = f"≈ {sp(rnd(pv['base_tasks'] * pl['x'] * cfg['base']['response_usd'] / cost(name)))} задач"
                     if m.get("sub_first") and i == m.get("from", 0):
-                        o = next((k for k in resp if re.search(r"Opus", k)), None)
-                        sub = m["sub_first"].replace("{ratio}", f"{v / resp[o][i]:.0f}") if o else ""
+                        ref = resp.get(base)
+                        sub = m["sub_first"].replace("{ratio}", f"{v / ref[i]:.0f}") if ref else ""
                     cells.append(f'<td><b>≈ {sp(rnd(v))}</b>' + (f"<small>{sub}</small>" if sub else "") + "</td>")
             body.append(f'<tr><td><b>{title}</b><small>{m["role"]}</small></td>{"".join(cells)}</tr>')
         tables.append(f'<div class="pl-wrap"><table class="pl pl-m"><thead><tr><th class="pl-p">{dot}{pv["name"]}</th>{head}</tr></thead>'
@@ -246,7 +261,7 @@ if sum(1 for m in data["bench"] if m.get("omni") is not None) < 5:
 data["logos"] = LOGOS
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
-body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {}), "BASE": BASE})["BODY"]
+body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {}), "MEDIA": data.get("media", {}), "BASE": BASE})["BODY"]
 count, bars, legend, date = chart(data)
 sub_tabs, sub_panels = subscriptions(data)
 cmp_html = compare(data)
