@@ -94,6 +94,26 @@ def media(key):
     return out
 
 
+# Models no benchmark ranks; the version comes from the article's own text.
+WIKI = {"midjourney": ("Midjourney", r"\bV(\d+(?:\.\d+)?)\b", "V")}
+
+
+def wiki_versions():
+    out = {}
+    for key, (title, pat, prefix) in WIKI.items():
+        try:
+            body = get("https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content"
+                       f"&rvslots=main&format=json&titles={title}")
+            txt = next(iter(body["query"]["pages"].values()))["revisions"][0]["slots"]["main"]["*"]
+            found = [float(v) for v in re.findall(pat, txt)]
+            if found:
+                top = max(found)
+                out[key] = prefix + (f"{top:g}" if top % 1 else f"{int(top)}")
+        except Exception as e:
+            print("wiki", key, "failed:", e)
+    return out
+
+
 def fetch():
     key = os.environ["AA_API_KEY"]
     try:
@@ -136,12 +156,12 @@ def fetch():
     benches = [{"name": m["name"], "creator": m["creator"], "effort": m["effort"], **m["bench"]}
                for m in current if m["bench"] and m["released"] >= year_ago]
     return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator, "media": media(key),
-            "variants": variants, "default": default, "prices": prices, "bench": benches}
+            "variants": variants, "default": default, "prices": prices, "bench": benches, "extra": wiki_versions()}
 
 try:
     data = fetch()
     print("fetched", len(data["models"]), "models,", len(data["variants"]), "variants with cost or time")
-    print("media:", {k: len(v) for k, v in (data.get("media") or {}).items()})
+    print("media:", {k: len(v) for k, v in (data.get("media") or {}).items()}, "| extra:", data.get("extra"))
 except Exception as e:
     print("API failed:", e)
     try:

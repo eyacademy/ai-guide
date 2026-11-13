@@ -102,5 +102,22 @@
 "Copilot": "copilot-color.svg",
 "Higgsfield": "sites/higgsfield.ai.png",
 "Google Labs": "google-color.svg",
-"mcp.so": "mcpso-color.svg"
+"mcp.so": "mcpso-color.svg",
+"Cerebras": "cerebras-color.svg",
+"vLLM": "vllm-color.svg",
+"Open WebUI": "openwebui.svg",
+"NVIDIA RTX Spark": "nvidia-color.svg",
+"Qdrant": "sites/qdrant.tech.png",
+"Chroma": "sites/trychroma.com.png",
+"pgvector": "sites/postgresql.org.png",
+"RAGFlow": "sites/ragflow.io.png",
+"LiteLLM": "sites/litellm.ai.png",
+"LlamaIndex": "llamaindex-color.svg",
+"LangChain": "langchain-color.svg",
+"Mac Studio": "apple.svg",
+"Unsloth": "unsloth-color.svg",
+"LLaMA Factory": "github.svg",
+"OpenAI Fine-tuning": "openai.svg",
+"Google Vertex AI": "vertexai-color.svg",
+"PocketPal": "github.svg"
 }

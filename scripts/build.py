@@ -261,7 +261,8 @@ if sum(1 for m in data["bench"] if m.get("omni") is not None) < 5:
 data["logos"] = LOGOS
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
-body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {}), "MEDIA": data.get("media", {}), "BASE": BASE})["BODY"]
+body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {}), "MEDIA": data.get("media", {}),
+                             "EXTRA": data.get("extra", {}), "BASE": BASE})["BODY"]
 count, bars, legend, date = chart(data)
 sub_tabs, sub_panels = subscriptions(data)
 cmp_html = compare(data)

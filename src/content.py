@@ -49,6 +49,7 @@ def model(creator, fallback):
 
 # Pictures, video and sound: names come from the Artificial Analysis arenas, newest version wins.
 MEDIA = globals().get("MEDIA") or {}
+EXTRA = globals().get("EXTRA") or {}
 
 
 # Speed and resolution variants of the same model: "Veo 3.1 Fast", "Kling 3.0 1080p".
@@ -116,7 +117,8 @@ SHORT = {"Агенты в рабочих чатах команды": "В чат�
          "MCP: подключение ИИ к вашим системам": "MCP", "Автоматизация без программирования": "Автоматизация",
          "Аватары и перевод видео": "Аватары и перевод", "Сайты и приложения без программирования": "Сайты и приложения",
          "Документы, презентации, инфографика": "Документы и презентации", "Запуск моделей на своём оборудовании": "Свои модели",
-         "Фото, видео и аудио": "Фото, видео, аудио", "Проверка на плагиат": "Плагиат"}
+         "Фото, видео и аудио": "Фото, видео, аудио", "Проверка на плагиат": "Плагиат",
+         "Свой стек на сервере": "Свой стек", "Запуск на своём компьютере": "На компьютере", "Дообучение моделей": "Дообучение"}
 
 
 def tabify(body):
@@ -286,7 +288,7 @@ m += grid([
      "Генерация и точное редактирование прямо в ChatGPT. Читаемый текст на картинках, в том числе на кириллице.", "https://chatgpt.com"),
     (retitle("Nano Banana 2 и Pro", media("image", r"^Nano Banana", "Nano Banana 2")),
      "Модель Google для изображений, работает в приложении Gemini.", "https://deepmind.google/models/gemini-image/"),
-    ("Midjourney", f"Художественная генерация с сильным стилем. Версия {media('image', r'^Midjourney', 'Midjourney V8.2').replace('Midjourney ', '')}.", "https://www.midjourney.com"),
+    ("Midjourney", f"Художественная генерация с сильным стилем. Версия {EXTRA.get('midjourney') or 'V8.2'}.", "https://www.midjourney.com"),
     ("Grok Imagine", "Картинки и видео от SpaceXAI" + (lambda p: f", {p}" if p else "")(place("image", r"grok|imagine", "картинок", "в топ-5 рейтинга Artificial Analysis")) + ".", "https://grok.com/imagine"),
     ("FLUX", "Модели Black Forest Labs" + (lambda n: f", актуальная {n}" if n else "")(media("image", r"^FLUX", "")) + ". Есть открытые веса и API.", "https://bfl.ai"),
 ])
@@ -360,19 +362,45 @@ c += grid([
     ("Anthropic", "Модели Claude.", "https://platform.claude.com"),
     ("Google AI Studio", "Модели Gemini, есть бесплатный лимит.", "https://aistudio.google.com"),
     ("OpenRouter", "Один ключ для сотен моделей разных компаний.", "https://openrouter.ai"),
-    ("Groq", "Очень быстрые ответы открытых моделей.", "https://groq.com"),
+    ("Groq", "Очень быстрые ответы открытых моделей. Не путать с Grok от SpaceXAI: это разные компании.", "https://groq.com"),
+    ("Cerebras", "Ещё один сервис сверхбыстрых ответов, часто быстрее Groq по числу слов в секунду.", "https://www.cerebras.ai"),
     ("DeepSeek", "Одни из самых низких цен среди сильных моделей.", "https://platform.deepseek.com"),
 ])
-c += h3("Запуск моделей на своём оборудовании", "Открытые модели DeepSeek, GLM, Qwen, Kimi и Xiaomi MiMo можно скачать и запустить внутри компании.")
+c += h3("Свой стек на сервере", "Когда данные нельзя отдавать наружу, ИИ поднимают внутри компании. Стек собирают слоями: "
+        "интерфейс для сотрудников, база знаний по документам, шлюз с лимитами и сам движок моделей.")
+c += grid([
+    ("Open WebUI", "Интерфейс: привычный чат для сотрудников. Вход по логину, своя история, загрузка документов, права доступа.", "https://openwebui.com"),
+    ("Qdrant", "База знаний: хранит документы в виде векторов. Рабочий выбор для компании.", "https://qdrant.tech"),
+    ("Chroma", "База знаний попроще: стоит в Open WebUI по умолчанию, настраивать нечего. Для пилота.", "https://www.trychroma.com"),
+    ("pgvector", "База знаний внутри PostgreSQL. Подходит, если PostgreSQL уже используется.", "https://github.com/pgvector/pgvector"),
+    ("RAGFlow", "Готовый сервер базы знаний с интерфейсом. Для сложных PDF и сканов, когда нет разработчиков.", "https://ragflow.io"),
+    ("LiteLLM", "Шлюз: отдельный ключ каждому сотруднику, лимиты по расходам, переключение между моделями.", "https://www.litellm.ai"),
+    ("vLLM", "Движок: держит сотни запросов одновременно. Ollama хватает одному человеку, компании нужен vLLM.", "https://docs.vllm.ai"),
+    ("LlamaIndex", "Для разработчиков: сборка своей логики поиска по документам и агентов.", "https://www.llamaindex.ai"),
+    ("LangChain", "Для разработчиков: каркас для цепочек запросов, инструментов и агентов.", "https://www.langchain.com"),
+])
+c += h3("Запуск на своём компьютере", "Открытые модели DeepSeek, GLM, Qwen, Kimi и Xiaomi MiMo можно скачать и запустить без интернета.")
 c += grid([
     ("Hugging Face", "Главный каталог открытых моделей и датасетов.", "https://huggingface.co"),
     ("LM Studio", "Программа для запуска моделей на компьютере в пару кликов.", "https://lmstudio.ai"),
     ("Ollama", "Запуск моделей из командной строки или приложения.", "https://ollama.com"),
     ("Jan", "Бесплатная программа с открытым кодом для Windows, Mac и Linux.", "https://www.jan.ai"),
-    ("NVIDIA DGX Spark", "Настольный ИИ-компьютер со 128 ГБ памяти для больших моделей.", "https://www.nvidia.com/en-us/products/workstations/dgx-spark/"),
+    '<div class="card"><b>' + logo("PocketPal") + 'PocketPal</b><p>Небольшие модели на телефоне, без интернета.</p><small><a href="https://play.google.com/store/apps/details?id=com.pocketpalai" target="_blank" rel="noopener" style="text-decoration:underline">Android</a> · <a href="https://apps.apple.com/kz/app/pocketpal-ai/id6502579498" target="_blank" rel="noopener" style="text-decoration:underline">iOS</a></small></div>',
+])
+c += h3("Оборудование", "Чтобы держать модель у себя, нужна общая память: чем её больше, тем крупнее модель поместится.")
+c += grid([
+    ("NVIDIA DGX Spark", "Настольный ИИ-компьютер на Linux со 128 ГБ общей памяти. Выпускается, снят с продажи не был.", "https://www.nvidia.com/en-us/products/workstations/dgx-spark/"),
+    ("NVIDIA RTX Spark", "Ноутбуки и компактные ПК на Windows: чип Grace Blackwell, до 128 ГБ общей памяти.", "https://nvidianews.nvidia.com/news/nvidia-microsoft-windows-pcs-agents-rtx-spark", "новое"),
     ("Мини-ПК на AMD Ryzen AI Max+", "Дешёвая альтернатива DGX Spark: до 128 ГБ памяти.", "https://www.amd.com/en/products/processors/laptop/ryzen/ai-300-series/amd-ryzen-ai-max-plus-395.html"),
-    ("Olares", "Готовая операционная система для локального ИИ.", "https://www.olares.com"),
-    '<div class="card"><b>PocketPal</b><p>Небольшие модели на телефоне, без интернета.</p><small><a href="https://play.google.com/store/apps/details?id=com.pocketpalai" target="_blank" rel="noopener" style="text-decoration:underline">Android</a> · <a href="https://apps.apple.com/kz/app/pocketpal-ai/id6502579498" target="_blank" rel="noopener" style="text-decoration:underline">iOS</a></small></div>',
+    ("Mac Studio", "Apple Silicon с большой общей памятью: тихий вариант для небольшой команды.", "https://www.apple.com/mac-studio/"),
+])
+c += h3("Дообучение моделей", "Нужно, когда важен строгий формат ответа или свой стиль. Чтобы ИИ просто отвечал по вашим документам, "
+        "дообучение не нужно — для этого есть база знаний.")
+c += grid([
+    ("Unsloth", "Дообучение на одной видеокарте: быстрее и экономнее обычного способа.", "https://unsloth.ai"),
+    ("LLaMA Factory", "Дообучение открытых моделей через интерфейс, без своего кода.", "https://github.com/hiyouga/LLaMA-Factory"),
+    ("OpenAI Fine-tuning", "Дообучение в облаке: загрузить примеры и нажать кнопку, специалисты не нужны.", "https://platform.openai.com/docs/guides/fine-tuning", None, False, "platform.openai.com"),
+    ("Google Vertex AI", "Дообучение и запуск моделей в облаке Google.", "https://cloud.google.com/vertex-ai"),
 ])
 out.append(sec("company", "06", "ИИ в своей компании", None, tabify(c)))
 
