@@ -348,9 +348,10 @@
  "Корпоративное обучение работе с ИИ": "Corporate AI training",
  "Стоимость одной задачи из рейтинга по ценам API. Меньше — лучше.": "Cost of one task from the index at API prices. Lower is better.",
  "Выше — умнее, левее — дешевле. Пунктир — граница эффективности.": "Higher means smarter, further left means cheaper. The dashed line is the efficiency frontier.",
- "Среднее время на одну задачу из рейтинга. Левее — быстрее.": "Average time per task from the index. Further left means faster.",
  "Токены, которые модель генерирует на одну задачу, включая рассуждения. Меньше — лучше.": "Tokens a model generates per task, reasoning included. Lower is better.",
  "Скорость вывода: больше — лучше. Задержка до первого токена: меньше — лучше.": "Output speed: higher is better. Latency to first token: lower is better.",
  "Стоимость задачи по тарифу при полном использовании лимита. Полые точки — по ценам API.": "Cost per task on a plan, with the full usage limit used. Hollow points are at API prices.",
- "Стоимость одной задачи из рейтинга — по тарифам подписки или по ценам API.": "Cost of one task from the index, at subscription or API prices."
+ "Стоимость одной задачи из рейтинга — по тарифам подписки или по ценам API.": "Cost of one task from the index, at subscription or API prices.",
+ "Среднее время на одну задачу из рейтинга. Меньше — лучше.": "Average time per task from the index. Lower is better.",
+ "Граница эффективности: ": "Efficiency frontier: "
 }

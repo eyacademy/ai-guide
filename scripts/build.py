@@ -90,13 +90,13 @@ def chart(data):
 TABS = [("cost", "Интеллект и стоимость", ("cost",),
          "Выше — умнее, левее — дешевле. Пунктир — граница эффективности."),
         ("time", "Время на задачу", ("time",),
-         "Среднее время на одну задачу из рейтинга. Левее — быстрее."),
+         "Среднее время на одну задачу из рейтинга. Меньше — лучше."),
         ("tokens", "Токены на задачу", ("tokens",),
          "Токены, которые модель генерирует на одну задачу, включая рассуждения. Меньше — лучше."),
         ("speed", "Скорость и задержка", ("speed", "ttft"),
          "Скорость вывода: больше — лучше. Задержка до первого токена: меньше — лучше.")]
 SUBS = {"speed": [("speed", "Скорость вывода"), ("ttft", "Задержка")]}
-BARS = {"tokens": "tokens"}   # tabs drawn as columns of one metric, no sub-tabs
+BARS = {"tokens": "tokens", "time": "time"}   # tabs drawn as columns of one metric, no sub-tabs
 SUB_NOTE = "Стоимость задачи по тарифу при полном использовании лимита. Полые точки — по ценам API."
 
 
@@ -131,7 +131,7 @@ def compare(data):
             f'<button type="button" data-scale="lin">{T("Линейная шкала")}</button></span>'
             f'<label class="cmp-par"><input type="checkbox" checked> {T("Граница эффективности")}</label></div></div>'
             f'<p class="cmp-note" data-sub-note="{html.escape(T(SUB_NOTE))}">{html.escape(T(tabs[0][3]))}</p>'
-            f'<div class="cmp-wrap"><div class="cmp-main"><div class="cmp-plot"><p class="cmp-load">{T("Загрузка данных…")}</p></div></div>'
+            f'<div class="cmp-wrap"><div class="cmp-main"><div class="cmp-plot"><p class="cmp-load">{T("Загрузка данных…")}</p></div><div class="cmp-best"></div></div>'
             f'<aside class="cmp-side"><div class="cmp-side-h"><b>{T("Модели")}</b><span class="cmp-count"></span></div>'
             f'<input class="cmp-q" type="search" placeholder="{T("Найти модель")}" aria-label="{T("Найти модель")}">'
             f'<div class="cmp-quick"><button type="button" data-q="top">{T("Топ-12")}</button><button type="button" data-q="none">{T("Сбросить выбор")}</button></div>'
@@ -350,7 +350,7 @@ def tag_links(body):
 UI = {"locale": "ru-RU", "sec": " с", "min": " мин", "hour": " ч", "k": " тыс.", "M": " млн", "B": " млрд",
       "level": "уровень ", "score": "Индекс интеллекта", "cost": "Стоимость задачи",
       "time": "Время на задачу", "tokens": "Токены на задачу", "axisY": "↑ Индекс интеллекта",
-      "speed": "Скорость вывода", "ttft": "Задержка", "tps": " ток/с", "subCost": "Стоимость задачи по тарифу",
+      "speed": "Скорость вывода", "ttft": "Задержка", "tps": " ток/с", "subCost": "Стоимость задачи по тарифу", "bestCost": "Граница эффективности: ",
       "plan": "Тариф", "apiPrice": "нет данных по тарифу; расчёт по ценам API", "notInPlan": "не входит в тариф; расчёт по ценам API", "nearFree": "≈ 0",
       "pick": "Выберите модели в списке справа.", "noData": "Не удалось загрузить данные. Обновите страницу.",
       "capScore": "Топ-{n} моделей, баллы из 100", "capOmni": "Итоговый балл от −100 до 100",

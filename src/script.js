@@ -53,7 +53,7 @@ var NS = "http://www.w3.org/2000/svg";
 var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:" млн", B:" млрд", level:"уровень ",
   score:"Индекс интеллекта", cost:"Стоимость задачи", time:"Время на задачу",
   tokens:"Токены на задачу", axisY:"↑ Индекс интеллекта",
-  speed:"Скорость вывода", ttft:"Задержка", tps:" ток/с", subCost:"Стоимость задачи по тарифу",
+  speed:"Скорость вывода", ttft:"Задержка", tps:" ток/с", subCost:"Стоимость задачи по тарифу", bestCost:"Граница эффективности: ",
   plan:"Тариф", apiPrice:"нет данных по тарифу; расчёт по ценам API", notInPlan:"не входит в тариф; расчёт по ценам API", nearFree:"≈ 0",
   pick:"Выберите модели в списке справа.", noData:"Не удалось загрузить данные. Обновите страницу.",
   capScore:"Топ-{n} моделей, баллы из 100", capOmni:"Итоговый балл от −100 до 100", capAcc:"Доля верных ответов",
@@ -280,12 +280,13 @@ function columns(plot, rows, k){
   var rotate = minGroup < 58;
   M.b = rotate ? (narrow?124:140) : 84;
   var H = (narrow ? 340 : 460) + M.b - 84, ih = H-M.t-M.b, base = M.t+ih;
-  var max = Math.max.apply(0, rows.map(function(m){ return m[k]; })), step = niceStep(max), top = Math.ceil(max/step)*step;
+  var max = Math.max.apply(0, rows.map(function(m){ return m[k]; }));
+  var step = k==="time" && max>=120 ? niceStep(max/60)*60 : niceStep(max), top = Math.ceil(max/step)*step;   // time: whole minutes
   var Y = function(v){ return M.t + (1-v/top)*ih; };
   var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":LABEL[k]});
   for(var v=0; v<=top+step/2; v+=step){
     el("line", {x1:M.l, x2:W-M.r, y1:Y(v), y2:Y(v), "class":"gl", "stroke-dasharray": v ? "2 4" : null}, svg);
-    el("text", {x:M.l-8, y:Y(v)+4, "text-anchor":"end", "class":"ax"}, svg).textContent = fmt(k, v, true);
+    el("text", {x:M.l-8, y:Y(v)+4, "text-anchor":"end", "class":"ax"}, svg).textContent = v ? fmt(k, v, true) : "0";
   }
   var bars = [], x = M.l;
   groups.forEach(function(g){
@@ -619,7 +620,7 @@ function setupCompare(box, d){
   });
   var defaults = (d["default"] || []).filter(function(n){ return fams[n]; }), sel = {}, allEff = true, logX = true, pareto = true;
   defaults.forEach(function(n){ sel[n] = 1; });
-  var plot = box.querySelector(".cmp-plot"), note = box.querySelector(".cmp-note"), subs = box.querySelector(".cmp-subs");
+  var plot = box.querySelector(".cmp-plot"), note = box.querySelector(".cmp-note"), subs = box.querySelector(".cmp-subs"), bestEl = box.querySelector(".cmp-best");
   var ctl = box.querySelector(".cmp-ctl"), par = box.querySelector(".cmp-par input");
   var list = box.querySelector(".cmp-list"), q = box.querySelector(".cmp-q"), count = box.querySelector(".cmp-count"), eff = box.querySelector(".cmp-eff input");
   var tab = box.querySelector(".cmp-tabs .on").getAttribute("data-tab"), subOf = {}, barOf = {};
@@ -665,9 +666,14 @@ function setupCompare(box, d){
     if(priceEl) priceEl.hidden = tab!=="cost";
     if(tierEl) tierEl.hidden = tab!=="cost" || price!=="sub";
     note.textContent = tab==="cost" && price==="sub" ? note.getAttribute("data-sub-note") : tabNote;
+    if(bestEl) bestEl.innerHTML = "";
     var vis = priced(visible());
     if(bars) return columns(plot, vis, sub);
-    scatter(plot, vis, tab, {log:logX, pareto:pareto, label: tab==="cost" && price==="sub" ? S.subCost : null});
+    var best = scatter(plot, vis, tab, {log:logX, pareto:pareto, label: tab==="cost" && price==="sub" ? S.subCost : null});
+    // The models on the frontier, cheapest first: easier to read than the crowded chart.
+    if(bestEl && pareto && best.length) bestEl.innerHTML = S.bestCost + best.filter(function(m, i){
+      return best.map(function(x){ return x.family; }).indexOf(m.family)===i;
+    }).map(function(m){ return "<b>"+esc(m.family)+"</b>"; }).join(" \u2192 ");
   }
   box.addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button") : null;
