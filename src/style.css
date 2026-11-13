@@ -262,3 +262,9 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 @media (max-width:600px){#eyai .rt button,#eyai .pl-tabs button{font-size:13px;padding:7px 10px}#eyai .pl-box{padding:14px 12px 4px}}
 #eyai .pl-lg{width:22px;height:22px;margin-right:10px;vertical-align:-4px}
 #eyai .pl-p .pl-lg{width:26px;height:26px;vertical-align:-5px}
+#eyai .card b .cl{width:20px;height:20px;border-radius:5px;vertical-align:-4px;margin-right:9px;object-fit:contain}
+#eyai .vl{width:30px;height:30px;border-radius:7px;vertical-align:-5px;margin-right:10px;object-fit:contain}
+#eyai .feature .vl{background:#fff;padding:3px}
+#eyai .links a em{font-style:normal;display:flex;align-items:center;gap:9px}
+#eyai .ll{width:16px;height:16px;border-radius:4px;object-fit:contain;flex:0 0 auto}
+#eyai .feature .ll{background:#fff;padding:1px}

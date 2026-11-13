@@ -6,17 +6,35 @@ def dom(u):
     p = urlparse(u).path.strip("/")
     return d + ("/" + p if p and len(d + p) < 26 and p.count("/") == 0 else "")
 
+import json, os
+BASE = globals().get("BASE") or ""
+LOGO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cardlogos.json"), encoding="utf-8"))
+
+
+def logo(name, cls="cl", size=20):
+    f = LOGO.get(name)
+    return f'<img class="{cls}" src="{BASE}logos/{f}" width="{size}" height="{size}" alt="" loading="lazy">' if f else ""
+
+
 def card(name, desc, url, tag=None, gray=False, small=None):
     t = f'<span class="tag{" g" if gray else ""}">{tag}</span>' if tag else ""
-    return (f'<a class="card" href="{url}" target="_blank" rel="noopener"><b>{name}{t}</b>'
+    return (f'<a class="card" href="{url}" target="_blank" rel="noopener"><b>{logo(name)}{name}{t}</b>'
             f'<p>{desc}</p><small>{small or dom(url)}</small></a>')
 
 def grid(items):
     return '<div class="grid">\n' + "\n".join(card(*i) if isinstance(i, tuple) else i for i in items) + "\n</div>"
 
-def links(items):
+# Link rows get the logo of the product they lead to; otherwise the vendor's.
+ROW_LOGO = [("Notebook", "Gemini Notebook"), ("Labs", "Google Labs"), ("AI Studio", "Google AI Studio"), ("Claude Code", "Claude Code"),
+            ("Codex", "Codex"), ("Copilot Chat", "Copilot"), ("Личный Copilot", "Copilot"), ("Higgsfield", "Higgsfield")]
+
+
+def links(items, brand=None):
+    def row(t):
+        key = next((k for w, k in ROW_LOGO if w in t), brand)
+        return logo(key, "ll", 16) if key else ""
     return '<ul class="links">' + "".join(
-        f'<li><a href="{u}" target="_blank" rel="noopener">{t} <span>{s}</span></a></li>' for t, u, s in items) + "</ul>"
+        f'<li><a href="{u}" target="_blank" rel="noopener"><em>{row(t)}{t}</em> <span>{s}</span></a></li>' for t, u, s in items) + "</ul>"
 
 MODELS = globals().get("MODELS") or {}
 
@@ -31,7 +49,7 @@ def model(creator, fallback):
 
 def vendor(by, name, text, pills, lk):
     p = "".join(f'<span class="pill{" top" if i == 0 else ""}">{x}</span>' for i, x in enumerate(pills))
-    return f'<div class="vendor"><span class="by">{by}</span><h3>{name}</h3><p>{text}</p><div class="pills">{p}</div>{links(lk)}</div>'
+    return f'<div class="vendor"><span class="by">{by}</span><h3>{logo(name, "vl", 30)}{name}</h3><p>{text}</p><div class="pills">{p}</div>{links(lk, name)}</div>'
 
 def sec(id_, num, title, lead, body):
     l = f'<p class="sec-lead">{lead}</p>' if lead else ""
@@ -182,7 +200,7 @@ out.append(sec("agents", "03", "ИИ-агенты",
                "Чат-бот отвечает на вопросы. Агент сам выполняет задачу: планирует шаги, пользуется инструментами и доводит работу до результата.", ag))
 
 # 5. media
-m = ('<div class="feature"><div><span class="by">Из Казахстана</span><h3>Higgsfield</h3>'
+m = ('<div class="feature"><div><span class="by">Из Казахстана</span><h3>' + logo("Higgsfield", "vl", 30) + 'Higgsfield</h3>'
      "<p>Платформа для фото и видео, первый казахстанский единорог, команда в основном из выпускников Назарбаев Университета. "
      "Собирает в одном месте лучшие модели (Seedance, Kling, Veo, Nano Banana, Wan) и собственные инструменты. Главный выбор маркетологов для роликов в соцсети.</p>"
      '<div class="pills"><span class="pill top">Cinema Studio 4.0</span><span class="pill">Soul ID</span><span class="pill">Speak</span><span class="pill">Marketing Studio</span><span class="pill">Popcorn</span></div>'
