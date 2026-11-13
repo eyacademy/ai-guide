@@ -250,7 +250,7 @@ function columns(plot, rows, k){
     var gx = x, cnt = g.rows.length;
     g.rows.forEach(function(m, i){
       var cx = x + unit*(i+0.5), y = Y(m[k]), grp = el("g", {"class":"col"}, svg);
-      el("rect", {x:cx-bw/2, y:y, width:bw, height:Math.max(1, base-y), rx:Math.min(3, bw/4), fill:g.c, "fill-opacity": cnt>1 ? 0.42+0.58*i/(cnt-1) : 1}, grp);
+      el("rect", {x:cx-bw/2, y:y, width:bw, height:Math.max(1, base-y), fill:g.c, "fill-opacity": cnt>1 ? 0.42+0.58*i/(cnt-1) : 1}, grp);
       if(unit>=24) el("text", {x:cx, y:y-6, "text-anchor":"middle", "class":"vl"}, grp).textContent = fmt(k, m[k], true);
       if(unit>=13 && m.effort) el("text", {x:cx, y:base+14, "text-anchor":"middle", "class":"ef"}, grp).textContent = abbr(m.effort);
       bars.push({g:grp, m:m, cx:cx, y:y});

@@ -67,14 +67,14 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 
 /* rating as vertical columns on wide screens, labelled like Artificial Analysis */
 #eyai .bar .lo{display:none}
-#eyai .lgl{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--c);color:#fff;font-size:11px;font-weight:700}
+#eyai .lgl{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:0;background:var(--c);color:#fff;font-size:11px;font-weight:700}
 @media (min-width:701px){
 #eyai .bars{display:flex;align-items:stretch;gap:6px;height:400px;padding-left:44px}
 #eyai .bar{display:flex;flex-direction:column;align-items:stretch;flex:1 1 0;min-width:0;padding:0;transition:opacity .15s;cursor:default}
 #eyai .bars:hover .bar{opacity:.4}
 #eyai .bars .bar:hover{opacity:1}
 #eyai .bar .t{order:1;flex:1;height:auto;background:none;display:flex;align-items:flex-end;border-bottom:1px solid var(--line)}
-#eyai .bar .f{width:100%;height:var(--w);min-width:0;padding:8px 0 0;align-items:flex-start;justify-content:center;border-radius:3px 3px 0 0;font-size:13px;transition:height .8s ease}
+#eyai .bar .f{width:100%;height:var(--w);min-width:0;padding:8px 0 0;align-items:flex-start;justify-content:center;border-radius:0;font-size:13px;transition:height .8s ease}
 #eyai .bar .i{display:none}
 #eyai .bar .lo{order:2;display:flex;justify-content:center;align-items:center;height:32px}
 #eyai .bar .n{order:3;height:104px;position:relative;font-size:13px;line-height:1.2}
@@ -217,7 +217,7 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 }
 
 /* subscription value tables */
-#eyai .pl-wrap{overflow-x:auto;margin-bottom:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+#eyai .pl-wrap{overflow-x:auto;margin-bottom:14px;border:1px solid var(--line);border-radius:0;background:var(--card)}
 #eyai .pl{width:100%;border-collapse:collapse;font-size:15px;min-width:640px}
 #eyai .pl th,#eyai .pl td{padding:14px 16px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
 #eyai .pl tr:last-child td{border-bottom:0}
@@ -225,13 +225,13 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .pl td:first-child,#eyai .pl th:first-child{text-align:left}
 #eyai .pl td small{display:block;font-size:13px;color:var(--ink2);margin-top:2px;font-weight:400}
 #eyai .pl td b{font-size:17px}
-#eyai .pl i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:10px;vertical-align:1px}
+#eyai .pl i{display:inline-block;width:12px;height:12px;border-radius:0;margin-right:10px;vertical-align:1px}
 #eyai .pl-p{font-size:22px!important}
 #eyai .pl-h th{background:var(--bg);font-size:20px;text-align:left}
 #eyai .pl-sum td:first-child b{font-size:16px}
 #eyai .pl-sum td:first-child small{display:inline;margin:0}
 #eyai .pl-n{font-weight:700;font-size:17px}
-#eyai .pl-x{display:inline-block;min-width:70px;padding:4px 12px;border-radius:999px;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 14%,#fff)}
+#eyai .pl-x{display:inline-block;min-width:64px;padding:3px 10px;border-radius:0;font-weight:700;color:var(--c);background:color-mix(in srgb,var(--c) 14%,#fff)}
 #eyai .pl-lim td{background:#fafafc;font-size:14px}
 #eyai .pl-lim td:first-child{background:var(--card)}
 #eyai .pl-no{color:var(--ink2)}
@@ -258,13 +258,14 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .rt-note{font-size:14px;color:var(--ink2);margin-top:12px;max-width:820px}
 #eyai .pl-box{background:var(--card);border:1px solid var(--line);padding:18px 20px 6px}
 #eyai .pl-box .cap{margin:14px 0 12px;font-size:14px}
-#eyai .pl-box .pl-wrap{border-radius:10px}
+#eyai .pl-box .pl-wrap{border-radius:0}
 @media (max-width:600px){#eyai .rt button,#eyai .pl-tabs button{font-size:13px;padding:7px 10px}#eyai .pl-box{padding:14px 12px 4px}}
 #eyai .pl-lg{width:22px;height:22px;margin-right:10px;vertical-align:-4px}
 #eyai .pl-p .pl-lg{width:26px;height:26px;vertical-align:-5px}
-#eyai .card b .cl{width:20px;height:20px;border-radius:5px;vertical-align:-4px;margin-right:9px;object-fit:contain}
-#eyai .vl{width:30px;height:30px;border-radius:7px;vertical-align:-5px;margin-right:10px;object-fit:contain}
+#eyai .card b .cl{width:20px;height:20px;border-radius:0;vertical-align:-4px;margin-right:9px;object-fit:contain}
+#eyai .vl{width:30px;height:30px;border-radius:0;vertical-align:-5px;margin-right:10px;object-fit:contain}
 #eyai .feature .vl{background:#fff;padding:3px}
 #eyai .links a em{font-style:normal;display:flex;align-items:center;gap:9px}
-#eyai .ll{width:16px;height:16px;border-radius:4px;object-fit:contain;flex:0 0 auto}
+#eyai .ll{width:16px;height:16px;border-radius:0;object-fit:contain;flex:0 0 auto}
 #eyai .feature .ll{background:#fff;padding:1px}
+#eyai .pl-sum thead th{font-size:13px;color:var(--ink2);font-weight:400;text-transform:uppercase;letter-spacing:.03em}
