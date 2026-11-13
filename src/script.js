@@ -65,7 +65,7 @@ var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:"
   ratingTitle:"Рейтинг моделей", valueTitle:"Стоимость и эффективность моделей",
   credit1:"Источник: Artificial Analysis · artificialanalysis.ai",
   credit2:"Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide",
-  nothing:"Ничего не найдено", knowledgeNote:""};
+  nothing:"Ничего не найдено", noFigure:"нет данных", knowledgeNote:""};
 var GUIDE = "guide.html";
 function readI18n(){
   // The Tilda loader carries only data-lang; the wording arrives with the page it pulls in.
@@ -646,6 +646,7 @@ function setupCompare(box, d){
     });
   }
 
+  function metric(){ return subOf[tab] || barOf[tab] || tab; }
   function visible(){ return rows.filter(function(r){ return sel[r.family] && (allEff || fams[r.family].best===r); }); }
   function renderList(){
     var text = q.value.trim().toLowerCase(), groups = {}, order = [];
@@ -657,7 +658,9 @@ function setupCompare(box, d){
     list.innerHTML = order.map(function(c){
       var lf = logoFile(c), lg = lf ? '<img src="'+BASE+'logos/'+lf+'" alt="">' : '<i class="lgd" style="background:'+groups[c][0].c+'"></i>';
       return '<div class="cmp-grp"><span>'+lg+esc(c)+'</span>'+groups[c].map(function(f){
-        return '<label><input type="checkbox" data-f="'+esc(f.name)+'"'+(sel[f.name]?" checked":"")+'><i style="background:'+f.c+'"></i><em>'+esc(f.name)+'</em><small>'+fmt("score", f.best.score)+'</small></label>';
+        // A model with no figure for the open tab stays in the list, greyed, so a click that draws nothing is explained.
+        var na = !rows.some(function(r){ return r.family===f.name && r[metric()]!=null; });
+        return '<label'+(na ? ' class="na"' : '')+'><input type="checkbox" data-f="'+esc(f.name)+'"'+(sel[f.name]?" checked":"")+'><i style="background:'+f.c+'"></i><em>'+esc(f.name)+'</em><small>'+(na ? S.noFigure : fmt("score", f.best.score))+'</small></label>';
       }).join("")+'</div>';
     }).join("") || '<p class="cmp-empty">'+S.nothing+'</p>';
     count.textContent = Object.keys(sel).length+S.of+Object.keys(fams).length;
@@ -695,6 +698,7 @@ function setupCompare(box, d){
     }
     if(b.getAttribute("data-tab")){ tab = b.getAttribute("data-tab"); tabNote = b.getAttribute("data-note"); }
     if(b.getAttribute("data-sub")) subOf[b.getAttribute("data-for")] = b.getAttribute("data-sub");
+    if(b.getAttribute("data-tab") || b.getAttribute("data-sub")) renderList();
     if(b.getAttribute("data-price")) price = b.getAttribute("data-price");
     if(b.getAttribute("data-tier")) tier = b.getAttribute("data-tier");
     if(b.getAttribute("data-scale")) logX = b.getAttribute("data-scale")==="log";

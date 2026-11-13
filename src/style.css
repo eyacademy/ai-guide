@@ -192,6 +192,9 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .cmp-best{font-size:14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 #eyai .cmp-best:empty{display:none}
 #eyai .cmp-best b{font-weight:700}
+#eyai .cmp-list label.na{color:var(--ink2)}
+#eyai .cmp-list label.na i{opacity:.35}
+#eyai .cmp-list label.na small{font-size:11px}
 #eyai .cmp-par{display:flex;gap:6px;align-items:center;cursor:pointer}
 #eyai .cmp-par input{accent-color:#2e2e38;margin:0}
 #eyai .cmp-plot .ef{fill:var(--ink2);font-size:10px}

@@ -359,7 +359,7 @@ UI = {"locale": "ru-RU", "sec": " с", "min": " мин", "hour": " ч", "k": " �
       "noteAcc": "Сколько вопросов на знания модель ответила верно. Больше — лучше.",
       "noteHall": "Как часто модель выдумывает ответ вместо ответа «не знаю». Меньше — лучше.",
       "of": " из ", "showAll": "Показать все ", "collapse": "Свернуть", "preparing": "Подготовка…",
-      "nothing": "Ничего не найдено", "ratingTitle": "Рейтинг моделей", "valueTitle": "Стоимость и эффективность моделей",
+      "nothing": "Ничего не найдено", "noFigure": "нет данных", "ratingTitle": "Рейтинг моделей", "valueTitle": "Стоимость и эффективность моделей",
       "credit1": "Источник: Artificial Analysis · artificialanalysis.ai",
       "credit2": "Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide"}
 
