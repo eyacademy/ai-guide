@@ -8,6 +8,7 @@ def dom(u):
 
 import json, os
 BASE = globals().get("BASE") or ""
+T = globals().get("T") or (lambda x: x)
 LOGO = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cardlogos.json"), encoding="utf-8"))
 
 
@@ -17,9 +18,9 @@ def logo(name, cls="cl", size=20):
 
 
 def card(name, desc, url, tag=None, gray=False, small=None):
-    t = f'<span class="tag{" g" if gray else ""}">{tag}</span>' if tag else ""
-    return (f'<a class="card" href="{url}" target="_blank" rel="noopener"><b>{logo(name)}{name}{t}</b>'
-            f'<p>{desc}</p><small>{small or dom(url)}</small></a>')
+    t = f'<span class="tag{" g" if gray else ""}">{T(tag)}</span>' if tag else ""
+    return (f'<a class="card" href="{url}" target="_blank" rel="noopener"><b>{logo(name)}{T(name)}{t}</b>'
+            f'<p>{T(desc)}</p><small>{small or dom(url)}</small></a>')
 
 def grid(items):
     return '<div class="grid">\n' + "\n".join(card(*i) if isinstance(i, tuple) else i for i in items) + "\n</div>"
@@ -34,7 +35,7 @@ def links(items, brand=None):
         key = next((k for w, k in ROW_LOGO if w in t), brand)
         return logo(key, "ll", 16) if key else ""
     return '<ul class="links">' + "".join(
-        f'<li><a href="{u}" target="_blank" rel="noopener"><em>{row(t)}{t}</em> <span>{s}</span></a></li>' for t, u, s in items) + "</ul>"
+        f'<li><a href="{u}" target="_blank" rel="noopener"><em>{row(t)}{T(t)}</em> <span>{s}</span></a></li>' for t, u, s in items) + "</ul>"
 
 MODELS = globals().get("MODELS") or {}
 
@@ -97,20 +98,20 @@ VENDORS = []
 
 def vendor(by, name, text, pills, lk):
     # Each big assistant becomes a tab: description and models on the left, links on the right.
-    p = "".join(f'<span class="pill{" top" if i == 0 else ""}">{x}</span>' for i, x in enumerate(pills))
-    VENDORS.append((name, f'<div class="vd"><div><span class="by">{by}</span><p>{text}</p><div class="pills">{p}</div></div>{links(lk, name)}</div>'))
+    p = "".join(f'<span class="pill{" top" if i == 0 else ""}">{T(x)}</span>' for i, x in enumerate(pills))
+    VENDORS.append((name, f'<div class="vd"><div><span class="by">{T(by)}</span><p>{T(text)}</p><div class="pills">{p}</div></div>{links(lk, name)}</div>'))
     return ""
 
 
 def vendor_tabs(extra):
     tabs = VENDORS + extra
-    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{logo(n, "tl", 16)}{n}</button>' for i, (n, _) in enumerate(tabs))
+    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{logo(n, "tl", 16)}{T(n)}</button>' for i, (n, _) in enumerate(tabs))
     panels = "".join(f'<div class="pl-panel"{" hidden" if i else ""}>{b}</div>' for i, (_, b) in enumerate(tabs))
     return f'<div class="pl-box"><div class="pl-tabs">{btns}</div>{panels}</div>'
 
 def sec(id_, num, title, lead, body):
-    l = f'<p class="sec-lead">{lead}</p>' if lead else ""
-    return f'<section id="eyai-{id_}">\n<div class="sec-h"><span class="num">{num}</span><h2>{title}</h2></div>\n{l}\n{body}\n</section>\n'
+    l = f'<p class="sec-lead">{T(lead)}</p>' if lead else ""
+    return f'<section id="eyai-{id_}">\n<div class="sec-h"><span class="num">{num}</span><h2>{T(title)}</h2></div>\n{l}\n{body}\n</section>\n'
 
 SHORT = {"Агенты в рабочих чатах команды": "В чатах команды", "Агенты на вашем компьютере": "На компьютере",
          "Агенты в облаке, 24/7": "В облаке, 24/7", "Агенты на сервере компании": "На сервере компании",
@@ -127,28 +128,31 @@ def tabify(body):
     for part in [x for x in re.split(r"(?=<h3>)", body) if x.strip()]:
         m = re.match(r'<h3>(.*?)</h3>(?:<p class="cap">(.*?)</p>)?', part, re.S)
         tabs.append((m.group(1), m.group(2), part[m.end():]))
-    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{SHORT.get(t, t)}</button>' for i, (t, _, _) in enumerate(tabs))
+    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{T(SHORT.get(t, t))}</button>' for i, (t, _, _) in enumerate(tabs))
     panels = "".join(f'<div class="pl-panel"{" hidden" if i else ""}>' + (f'<p class="pcap">{c}</p>' if c else "") + b + "</div>"
                      for i, (_, c, b) in enumerate(tabs))
     return f'<div class="pl-box"><div class="pl-tabs">{btns}</div>{panels}</div>'
 
 
 def h3(t, cap=None):
-    return f"<h3>{t}</h3>" + (f'<p class="cap">{cap}</p>' if cap else "")
+    return f"<h3>{T(t)}</h3>" + (f'<p class="cap">{T(cap)}</p>' if cap else "")
 
 NAV = [("rating", "Рейтинг"), ("llm", "Чат-боты"), ("agents", "ИИ-агенты"),
        ("media", "Креативы"), ("tools", "Полезные сервисы"), ("company", "ИИ в компании"), ("detect", "Детекторы")]
 
 out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' +
-       "".join(f'<a href="#eyai-{i}"><span>{n}</span>{t}</a>' for n, (i, t) in enumerate(NAV, 1))
-       + '<a class="toc-cta" href="https://eyacademyeurasia.com/ai/chatgpt?utm_source=ai-guide" target="_blank" rel="noopener">Тренинг по ИИ &rarr;</a>'
+       "".join(f'<a href="#eyai-{i}"><span>{n}</span>{T(t)}</a>' for n, (i, t) in enumerate(NAV, 1))
+       + f'<a class="toc-cta" href="{T("https://eyacademyeurasia.com/ai/chatgpt")}?utm_source=ai-guide" target="_blank" rel="noopener">{T("Тренинг по ИИ")} &rarr;</a>'
        + "</div></div>",
        '<div class="w">']
 
 # 2. rating
-rating = ('<div class="chart">{RATING_TABS}<div class="rt-main"><div class="chart-top"><span class="rt-cap">Топ-{CHART_N} моделей, баллы из 100</span><span class="rt-date">{CHART_DATE}</span></div>'
-          '<ol class="bars cut">{CHART_BARS}</ol><button type="button" class="rt-more">Показать все</button><div class="legend">{CHART_LEGEND}</div></div><div class="rt-value" hidden>{COMPARE}</div></div>'
-          '<p class="src">Источник: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>')
+rating = ('<div class="chart">{RATING_TABS}<div class="rt-main"><div class="chart-top"><span class="rt-cap">'
+          + T("Топ-{n} моделей, баллы из 100").replace("{n}", "{CHART_N}")
+          + '</span><span class="rt-date">{CHART_DATE}</span></div>'
+          '<ol class="bars cut">{CHART_BARS}</ol><button type="button" class="rt-more">' + T("Показать все") + '</button>'
+          '<div class="legend">{CHART_LEGEND}</div></div><div class="rt-value" hidden>{COMPARE}</div></div>'
+          '<p class="src">' + T("Источник:") + ' <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>')
 out.append(sec("rating", "01", "Рейтинг моделей",
                "Artificial Analysis Intelligence Index. Независимая лаборатория прогоняет модели через 10 тестов: агентные задачи, программирование, знания, научное мышление. Чем выше балл, тем лучше модель справляется со сложной работой.",
                rating))
@@ -191,21 +195,23 @@ PLAN_ROWS = [("ChatGPT", "Free, Go $8, Plus $20, Pro от $100", "Да, можн
              ("Gemini", "Free, AI Plus $5, AI Pro $20, Ultra от $100", "Да, можно отключить", "Google Workspace от $7, Gemini включён"),
              ("Copilot", "Бесплатно, Microsoft 365 Personal $10, Premium $20", "В новом приложении нет",
               "Copilot Chat бесплатно с M365, Microsoft 365 Copilot $21–30 + лицензия M365")]
-kinds = ('<p class="pcap">Личная подписка может обучать модели на вашей переписке, пока это не отключить, и не даёт компании контроля. '
-         'Бизнес-подписка на данных не обучает, даёт администратора, вход через корпоративный аккаунт и один счёт, подключается от 2 пользователей.</p>'
-         '<div class="pl-wrap"><table class="pl pl-k"><tbody><tr class="pl-h"><th>Сервис</th><th>Личная подписка</th><th>Обучение на данных</th><th>Бизнес-подписка</th></tr>'
-         + "".join(f'<tr><td><b>{logo(n, "pl-lg", 16)}{n}</b></td><td>{a}</td><td>{t}</td><td>{b}</td></tr>' for n, a, t, b in PLAN_ROWS)
-         + '<tr><td><b>API</b></td><td>Оплата за объём запросов, без подписки</td><td>Не обучают по умолчанию, кроме бесплатного уровня Gemini API</td><td>—</td></tr>'
-         '</tbody></table></div><p class="src">Цены за пользователя в месяц в долларах США. У бизнес-тарифов меньшая цена при оплате за год.</p>')
-privacy = '<div class="grid">' + "".join(f'<div class="card"><b>{logo(a)}{a}</b><p>{t}</p></div>' for a, t in [
+kinds = ('<p class="pcap">' + T("Личная подписка может обучать модели на вашей переписке, пока это не отключить, и не даёт компании контроля. "
+         "Бизнес-подписка на данных не обучает, даёт администратора, вход через корпоративный аккаунт и один счёт, подключается от 2 пользователей.") + '</p>'
+         f'<div class="pl-wrap"><table class="pl pl-k"><tbody><tr class="pl-h"><th>{T("Сервис")}</th><th>{T("Личная подписка")}</th>'
+         f'<th>{T("Обучение на данных")}</th><th>{T("Бизнес-подписка")}</th></tr>'
+         + "".join(f'<tr><td><b>{logo(n, "pl-lg", 16)}{n}</b></td><td>{T(a)}</td><td>{T(t)}</td><td>{T(b)}</td></tr>' for n, a, t, b in PLAN_ROWS)
+         + f'<tr><td><b>API</b></td><td>{T("Оплата за объём запросов, без подписки")}</td>'
+         f'<td>{T("Не обучают по умолчанию, кроме бесплатного уровня Gemini API")}</td><td>—</td></tr>'
+         f'</tbody></table></div><p class="src">{T("Цены за пользователя в месяц в долларах США. У бизнес-тарифов меньшая цена при оплате за год.")}</p>')
+privacy = '<div class="grid">' + "".join(f'<div class="card"><b>{logo(a)}{a}</b><p>{T(t)}</p></div>' for a, t in [
     ("ChatGPT", "Settings → Data controls → выключить «Improve the model for everyone». Временные чаты не используются для обучения."),
     ("Claude", "Settings → Privacy → выключить «Help improve Claude». Чаты в режиме инкогнито не используются для обучения."),
     ("Gemini", "Activity → выключить «Keep Activity». Временные чаты не используются для обучения."),
 ]) + "</div>"
 llm += h3("Подписки", "Какие бывают, сколько стоят и сколько работы дают. Для рабочих документов берите бизнес-подписку: "
           "она стоит почти как личная, а данные компании остаются под её контролем.")
-llm += ('<div class="pl-box"><div class="pl-tabs"><button type="button" class="on">Какие бывают</button>{SUBS_TABS}'
-        '<button type="button">Как отключить обучение</button></div>'
+llm += ('<div class="pl-box"><div class="pl-tabs"><button type="button" class="on">' + T("Какие бывают") + '</button>{SUBS_TABS}'
+        '<button type="button">' + T("Как отключить обучение") + '</button></div>'
         f'<div class="pl-panel">{kinds}</div>' + "{SUBS_PANELS}" + f'<div class="pl-panel" hidden>{privacy}</div></div>')
 others = grid([
     ("DeepSeek", f"Сильная китайская модель {model('DeepSeek', 'DeepSeek V4.1 Flash')}. Бесплатный чат, веса можно скачать и запустить у себя.", "https://chat.deepseek.com", "открытая"),
@@ -267,7 +273,7 @@ ag += grid([
     ("Glama", "Самый большой каталог MCP-серверов с поиском.", "https://glama.ai/mcp/servers"),
     ("mcp.so", "Большой открытый каталог MCP-серверов от сообщества.", "https://mcp.so"),
 ])
-ag += '<p class="note"><b>Агенты и MCP-серверы действуют сами.</b> Перед подключением к рабочим данным ограничьте права доступа и проверьте, кто автор сервера.</p>'
+ag += '<p class="note">' + T("<b>Агенты и MCP-серверы действуют сами.</b> Перед подключением к рабочим данным ограничьте права доступа и проверьте, кто автор сервера.") + "</p>"
 ag += h3("Автоматизация без программирования", "Цепочки действий между сервисами: письмо пришло, ИИ разобрал, задача появилась в CRM.")
 ag += grid([
     ("n8n", "Гибкий конструктор с ИИ-агентами. Можно развернуть на серверах компании.", "https://n8n.io"),
@@ -387,7 +393,7 @@ c += grid([
     ("LM Studio", "Программа для запуска моделей на компьютере в пару кликов.", "https://lmstudio.ai"),
     ("Ollama", "Запуск моделей из командной строки или приложения.", "https://ollama.com"),
     ("Jan", "Бесплатная программа с открытым кодом для Windows, Mac и Linux.", "https://www.jan.ai"),
-    '<div class="card"><b>' + logo("PocketPal") + 'PocketPal</b><p>Небольшие модели на телефоне, без интернета.</p><small><a href="https://play.google.com/store/apps/details?id=com.pocketpalai" target="_blank" rel="noopener" style="text-decoration:underline">Android</a> · <a href="https://apps.apple.com/kz/app/pocketpal-ai/id6502579498" target="_blank" rel="noopener" style="text-decoration:underline">iOS</a></small></div>',
+    '<div class="card"><b>' + logo("PocketPal") + 'PocketPal</b><p>' + T("Небольшие модели на телефоне, без интернета.") + '</p><small><a href="https://play.google.com/store/apps/details?id=com.pocketpalai" target="_blank" rel="noopener" style="text-decoration:underline">Android</a> · <a href="https://apps.apple.com/kz/app/pocketpal-ai/id6502579498" target="_blank" rel="noopener" style="text-decoration:underline">iOS</a></small></div>',
 ])
 c += h3("Оборудование", "Чтобы держать модель у себя, нужна общая память: чем её больше, тем крупнее модель поместится.")
 c += grid([
@@ -419,7 +425,7 @@ d += grid([
     ("Turnitin", "Стандарт в университетах.", "https://www.turnitin.com/solutions/topics/ai-writing/", None, False, "turnitin.com"),
     ("Copyleaks", "Детектор и проверка плагиата на 30+ языках.", "https://copyleaks.com/ai-content-detector"),
 ])
-d += '<p class="note"><b>Детекторам нельзя верить на слово.</b> Они часто принимают текст человека за ИИ-текст, особенно если автор пишет не на родном языке. Используйте результат как повод присмотреться, а не как доказательство.</p>'
+d += '<p class="note">' + T("<b>Детекторам нельзя верить на слово.</b> Они часто принимают текст человека за ИИ-текст, особенно если автор пишет не на родном языке. Используйте результат как повод присмотреться, а не как доказательство.") + "</p>"
 d += h3("Проверка на плагиат")
 d += grid([
     ("Grammarly", "Проверка плагиата бесплатно, полная версия в Grammarly Pro.", "https://www.grammarly.com/plagiarism-checker"),
@@ -429,7 +435,8 @@ d += grid([
 out.append(sec("detect", "07", "Проверка: ИИ или не ИИ", None, tabify(d)))
 
 out.append("</div>")
-out.append('<div class="cta"><div class="w"><div><h2>Хотите научить команду работать с ИИ?</h2><p>Корпоративные тренинги Академии бизнеса EY под задачи вашей компании.</p></div>'
-           '<a class="btn" href="https://eyacademyeurasia.com/ai?utm_source=ai-guide" target="_blank" rel="noopener">Узнать о программах &rarr;</a></div></div>')
+out.append(f'<div class="cta"><div class="w"><div><h2>{T("Хотите научить команду работать с ИИ?")}</h2>'
+           f'<p>{T("Корпоративные тренинги Академии бизнеса EY под задачи вашей компании.")}</p></div>'
+           f'<a class="btn" href="{T("https://eyacademyeurasia.com/ai")}?utm_source=ai-guide" target="_blank" rel="noopener">{T("Узнать о программах")} &rarr;</a></div></div>')
 out.append("</div>")
 BODY = "\n".join(out)

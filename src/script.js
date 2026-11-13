@@ -50,23 +50,46 @@ function bindToc(){
 
 /* model comparison */
 var NS = "http://www.w3.org/2000/svg";
-var LABEL = {score:"Интеллект", cost:"Цена задачи", cost_total:"Общая стоимость", time:"Время на задачу", tokens:"Токены на задачу", tokens_total:"Всего токенов"};
+var S = {locale:"ru-RU", sec:" с", min:" мин", hour:" ч", k:" тыс.", M:" млн", B:" млрд", level:"уровень ",
+  score:"Интеллект", cost:"Цена задачи", cost_total:"Общая стоимость", time:"Время на задачу",
+  tokens:"Токены на задачу", tokens_total:"Всего токенов", axisY:"↑ Интеллект",
+  pick:"Выберите модели в списке справа.", noData:"Не удалось загрузить данные. Обновите страницу.",
+  capScore:"Топ-{n} моделей, баллы из 100", capOmni:"Итоговый балл от −100 до 100", capAcc:"Доля верных ответов",
+  capHall:"Доля выдуманных ответов, меньше — лучше", capField:"Баллы из 100",
+  noteOmni:"За верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль. Ниже нуля — модель чаще выдумывает, чем знает.",
+  noteAcc:"Сколько вопросов на знания модель ответила верно. Больше — лучше.",
+  noteHall:"Как часто модель выдумывает ответ, когда должна была сказать «не знаю». Меньше — лучше.",
+  bestCost:"Самые выгодные: ", bestTime:"Самые быстрые для своего уровня: ",
+  bestHint:". Наведите на точку, чтобы увидеть цену и уровень размышлений.",
+  of:" из ", showAll:"Показать все ", collapse:"Свернуть", preparing:"Готовим…",
+  ratingTitle:"Рейтинг моделей", valueTitle:"Какая модель выгоднее",
+  credit1:"Источник: Artificial Analysis · artificialanalysis.ai",
+  credit2:"Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide",
+  nothing:"Ничего не найдено", knowledgeNote:""};
+var GUIDE = "guide.html";
+(function(){
+  var r = document.getElementById("eyai"), raw = r && r.getAttribute("data-i18n");
+  var lang = r && r.getAttribute("data-lang");
+  if(lang && lang !== "ru") GUIDE = lang + "/guide.html";
+  if(raw) try { var o = JSON.parse(raw); for(var k in o) S[k] = o[k]; } catch(e){}
+})();
+var LABEL = S;
 var EFF = ["non-reasoning","minimal","low","medium","default","high","xhigh","max"];
 
 function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
-function num(v, d){ return v.toLocaleString("ru-RU", {maximumFractionDigits: d}); }
+function num(v, d){ return v.toLocaleString(S.locale, {maximumFractionDigits: d}); }
 function fmt(k, v, short){
   if(v==null) return "—";
   if(k==="score") return num(v, 1);
   if(k==="cost"||k==="cost_total") return "$" + num(v, v<1 ? (short?2:3) : v<100 ? (short?1:2) : 0);
   if(k==="time"){
-    if(v<60) return Math.round(v)+" с";
-    if(v<3600) return short ? num(v/60,1)+" мин" : Math.floor(v/60)+" мин "+Math.round(v%60)+" с";
-    return short ? num(v/3600,1)+" ч" : Math.floor(v/3600)+" ч "+Math.round(v%3600/60)+" мин";
+    if(v<60) return Math.round(v)+S.sec;
+    if(v<3600) return short ? num(v/60,1)+S.min : Math.floor(v/60)+S.min+" "+Math.round(v%60)+S.sec;
+    return short ? num(v/3600,1)+S.hour : Math.floor(v/3600)+S.hour+" "+Math.round(v%3600/60)+S.min;
   }
-  if(v>=1e9) return num(v/1e9,1)+" млрд";
-  if(v>=1e6) return num(v/1e6,1)+" млн";
-  if(v>=1e3) return num(v/1e3,short?0:1)+" тыс.";
+  if(v>=1e9) return num(v/1e9,1)+S.B;
+  if(v>=1e6) return num(v/1e6,1)+S.M;
+  if(v>=1e3) return num(v/1e3,short?0:1)+S.k;
   return num(v,0);
 }
 
@@ -114,7 +137,7 @@ function frontier(rows, k){
 
 function tipHtml(m, k){
   var keys = ["score","cost","cost_total","time","tokens","tokens_total"];
-  var h = "<b>"+esc(m.family)+"</b><small>"+esc(m.creator)+(m.effort ? " · уровень "+esc(m.effort) : "")+"</small>";
+  var h = "<b>"+esc(m.family)+"</b><small>"+esc(m.creator)+(m.effort ? " · "+S.level+esc(m.effort) : "")+"</small>";
   keys.forEach(function(x){ if(m[x]!=null) h += '<span'+(x===k?' class="on"':'')+'><i>'+LABEL[x]+'</i>'+fmt(x,m[x])+'</span>'; });
   return h;
 }
@@ -133,7 +156,7 @@ function empty(plot, text){ plot.innerHTML = '<p class="cmp-load">'+text+'</p>';
 
 function scatter(plot, rows, k, opt){
   rows = rows.filter(function(m){ return m[k]!=null; });
-  if(!rows.length){ empty(plot, "Выберите модели в списке справа."); return []; }
+  if(!rows.length){ empty(plot, S.pick); return []; }
   var W = plot.clientWidth, H = Math.round(Math.max(300, Math.min(480, W*0.62)));
   var M = {l:34, r:12, t:12, b:34}, iw = W-M.l-M.r, ih = H-M.t-M.b;
   var xs = rows.map(function(m){ return m[k]; }), ys = rows.map(function(m){ return m.score; });
@@ -148,7 +171,7 @@ function scatter(plot, rows, k, opt){
     X = function(v){ return M.l + v/xtop*iw; };
     for(var t0=0; t0<=xtop+st/2; t0+=st) xt.push(t0);
   }
-  var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":"Интеллект моделей против: "+LABEL[k]});
+  var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":S.score+" / "+LABEL[k]});
   for(var v=y0; v<=y1; v+=10){
     el("line", {x1:M.l, x2:W-M.r, y1:Y(v), y2:Y(v), "class":"gl"}, svg);
     el("text", {x:M.l-8, y:Y(v)+4, "text-anchor":"end", "class":"ax"}, svg).textContent = v;
@@ -158,7 +181,7 @@ function scatter(plot, rows, k, opt){
     el("text", {x:X(t), y:H-M.b+18, "text-anchor":"middle", "class":"ax"}, svg).textContent = fmt(k,t,true);
   });
   el("text", {x:W-M.r, y:H-M.b-6, "text-anchor":"end", "class":"ax"}, svg).textContent = LABEL[k]+" →";
-  el("text", {x:M.l+6, y:M.t+14, "class":"ax"}, svg).textContent = "↑ Интеллект";
+  el("text", {x:M.l+6, y:M.t+14, "class":"ax"}, svg).textContent = S.axisY;
   // Reasoning levels of one model share a thin line in its colour.
   var fams = {};
   rows.forEach(function(m){ (fams[m.family] = fams[m.family] || []).push(m); });
@@ -224,7 +247,7 @@ function wrap2(text, max){
 // Bars grouped by model, one bar per reasoning level, like the Artificial Analysis cost charts.
 function columns(plot, rows, k){
   rows = rows.filter(function(m){ return m[k]!=null; });
-  if(!rows.length){ empty(plot, "Выберите модели в списке справа."); return; }
+  if(!rows.length){ empty(plot, S.pick); return; }
   var byF = {};
   rows.forEach(function(m){ (byF[m.family] = byF[m.family] || []).push(m); });
   var groups = Object.keys(byF).map(function(f){
@@ -240,7 +263,7 @@ function columns(plot, rows, k){
   var H = (narrow ? 340 : 460) + M.b - 84, ih = H-M.t-M.b, base = M.t+ih;
   var max = Math.max.apply(0, rows.map(function(m){ return m[k]; })), step = niceStep(max), top = Math.ceil(max/step)*step;
   var Y = function(v){ return M.t + (1-v/top)*ih; };
-  var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":LABEL[k]+" по моделям и уровням размышлений"});
+  var svg = el("svg", {viewBox:"0 0 "+W+" "+H, height:H, role:"img", "aria-label":LABEL[k]});
   for(var v=0; v<=top+step/2; v+=step){
     el("line", {x1:M.l, x2:W-M.r, y1:Y(v), y2:Y(v), "class":"gl", "stroke-dasharray": v ? "2 4" : null}, svg);
     el("text", {x:M.l-8, y:Y(v)+4, "text-anchor":"end", "class":"ax"}, svg).textContent = fmt(k, v, true);
@@ -298,8 +321,7 @@ function colorFrom(colors, creator){
 }
 
 /* saving a chart as a picture, with the sources named under it */
-var CREDIT = ["Источник: Artificial Analysis · artificialanalysis.ai",
-              "Гид по ИИ-инструментам Академии бизнеса EY · eyacademyeurasia.com/ai-guide"];
+function credit(){ return [S.credit1, S.credit2]; }
 
 function dataUri(url){
   return fetch(url, {cache:"force-cache"}).then(function(r){ return r.blob(); }).then(function(b){
@@ -324,7 +346,7 @@ function ratingSvg(list, caption, pct, colors){
   var pad = neg ? (pos + neg) * 0.09 : 0, max = (pos + neg + pad) || 1, zero = M.t + ih * pos / max;
   var svg = el("svg", {xmlns:NS, width:W, height:H, viewBox:"0 0 "+W+" "+H});
   el("rect", {x:0, y:0, width:W, height:H, fill:"#fff"}, svg);
-  svgText(svg, M.l, 44, "Рейтинг моделей", {size:26, bold:true});
+  svgText(svg, M.l, 44, S.ratingTitle, {size:26, bold:true});
   svgText(svg, M.l, 70, caption, {size:14, fill:"#747480"});
   el("line", {x1:M.l - 10, x2:W - M.r, y1:zero, y2:zero, stroke:"#e1e1e6"}, svg);
   list.forEach(function(m, i){
@@ -336,7 +358,7 @@ function ratingSvg(list, caption, pct, colors){
     if(m.file) el("image", {href:BASE + "logos/" + m.file, x:cx - 10, y:M.t + ih + 10, width:20, height:20}, svg);
     svgText(svg, cx + 4, M.t + ih + 42, m.name, {size:12, anchor:"end", rotate:-45});
   });
-  CREDIT.forEach(function(line, i){ svgText(svg, M.l, H - 28 + i * 16, line, {size:12, fill:"#747480"}); });
+  credit().forEach(function(line, i){ svgText(svg, M.l, H - 28 + i * 16, line, {size:12, fill:"#747480"}); });
   return svg;
 }
 
@@ -353,8 +375,8 @@ function framed(svg){
   copy.setAttribute("x", 24); copy.setAttribute("y", 52);
   copy.setAttribute("width", w); copy.setAttribute("height", h);
   out.appendChild(copy);
-  svgText(out, 24, 34, "Какая модель выгоднее", {size:20, bold:true});
-  CREDIT.forEach(function(line, i){ svgText(out, 24, h + 82 + i * 16, line, {size:12, fill:"#747480"}); });
+  svgText(out, 24, 34, S.valueTitle, {size:20, bold:true});
+  credit().forEach(function(line, i){ svgText(out, 24, h + 82 + i * 16, line, {size:12, fill:"#747480"}); });
   return out;
 }
 
@@ -391,12 +413,11 @@ function savePng(svg, name){
 }
 
 /* rating tabs: intelligence, knowledge reliability, fields */
-var RT_CAP = {score:"Топ-30 моделей, баллы из 100", omni:"Итоговый балл от −100 до 100", acc:"Доля верных ответов",
-  hall:"Доля выдуманных ответов, меньше — лучше", fin:"Баллы из 100", ops:"Баллы из 100", law:"Баллы из 100",
-  med:"Баллы из 100", eng:"Баллы из 100", eco:"Баллы из 100"};
-var RT_NOTE = {omni:"За верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль. Ниже нуля — модель чаще выдумывает, чем знает.",
-  acc:"Сколько вопросов на знания модель ответила верно. Больше — лучше.",
-  hall:"Как часто модель выдумывает ответ, когда должна была сказать «не знаю». Меньше — лучше."};
+function rtCap(metric, n){
+  if(metric === "score") return S.capScore.replace("{n}", n);
+  return {omni:S.capOmni, acc:S.capAcc, hall:S.capHall}[metric] || S.capField;
+}
+function rtNote(metric){ return {omni:S.noteOmni, acc:S.noteAcc, hall:S.noteHall}[metric] || ""; }
 
 function initRating(){
   var rt = document.querySelector("#eyai .rt");
@@ -428,9 +449,9 @@ function initRating(){
         '<span class="n"><span>'+name+'</span><small>'+esc(m.creator)+'</small></span><span class="t"><span class="f'+(w<14 || m.v<0 ? " sm" : "")+'" style="--c:'+c+';--w:'+w+'%"><em>'+val+'</em></span></span></li>';
     }).join("");
     legend.innerHTML = leg.join("");
-    cap.textContent = metric==="score" ? "Топ-"+list.length+" моделей, баллы из 100" : RT_CAP[metric];
-    note.textContent = RT_NOTE[metric] || tabNote;
-    if(dateEl) dateEl.textContent = (tab==="know" && d.knowledge_note) ? d.knowledge_note : dateText;
+    cap.textContent = rtCap(metric, list.length);
+    note.textContent = rtNote(metric) || tabNote;
+    if(dateEl) dateEl.textContent = tab==="know" ? (S.knowledgeNote || d.knowledge_note || dateText) : dateText;
   }
   var main = chart.querySelector(".rt-main"), value = chart.querySelector(".rt-value");
   function show(){
@@ -445,7 +466,7 @@ function initRating(){
     if(!b) return;
     if(b.classList.contains("rt-dl")){
       var busy = b.textContent;
-      b.textContent = "Готовим…"; b.disabled = true;
+      b.textContent = S.preparing; b.disabled = true;
       var plot = value && !value.hidden ? value.querySelector(".cmp-plot svg") : null;
       var svg = plot ? framed(plot) : (shown ? ratingSvg(shown, cap.textContent, metric === "acc" || metric === "hall", colors) : null);
       var done = function(){ b.textContent = busy; b.disabled = false; };
@@ -471,7 +492,7 @@ function initMore(){
   if(!btn || btn.getAttribute("data-on")) return;
   btn.setAttribute("data-on", "1");
   var ol = btn.parentNode.querySelector(".bars");
-  function label(){ var n = ol.children.length; btn.hidden = n <= 10; btn.textContent = ol.classList.contains("cut") ? "Показать все " + n : "Свернуть"; }
+  function label(){ var n = ol.children.length; btn.hidden = n <= 10; btn.textContent = ol.classList.contains("cut") ? S.showAll + n : S.collapse; }
   btn.addEventListener("click", function(){ ol.classList.toggle("cut"); label(); });
   new MutationObserver(label).observe(ol, {childList:true});
   label();
@@ -499,7 +520,7 @@ function initCompare(){
   box.setAttribute("data-on", "1");
   var plot = box.querySelector(".cmp-plot");
   loadData().then(function(d){ setupCompare(box, d); })
-    .catch(function(){ empty(plot, "Не удалось загрузить данные. Обновите страницу."); });
+    .catch(function(){ empty(plot, S.noData); });
 }
 
 function setupCompare(box, d){
@@ -532,8 +553,8 @@ function setupCompare(box, d){
       return '<div class="cmp-grp"><span>'+lg+esc(c)+'</span>'+groups[c].map(function(f){
         return '<label><input type="checkbox" data-f="'+esc(f.name)+'"'+(sel[f.name]?" checked":"")+'><i style="background:'+f.c+'"></i><em>'+esc(f.name)+'</em><small>'+fmt("score", f.best.score)+'</small></label>';
       }).join("")+'</div>';
-    }).join("") || '<p class="cmp-empty">Ничего не найдено</p>';
-    count.textContent = Object.keys(sel).length+" из "+Object.keys(fams).length;
+    }).join("") || '<p class="cmp-empty">'+S.nothing+'</p>';
+    count.textContent = Object.keys(sel).length+S.of+Object.keys(fams).length;
   }
   function draw(){
     subs.hidden = tab!=="tokens";
@@ -542,9 +563,9 @@ function setupCompare(box, d){
     var vis = visible();
     if(tab==="tokens") return columns(plot, vis, sub);
     var best = scatter(plot, vis, tab, {log:logX, pareto:pareto});
-    if(best.length) bestEl.innerHTML = (tab==="cost" ? "Самые выгодные: " : "Самые быстрые для своего уровня: ") +
+    if(best.length) bestEl.innerHTML = (tab==="cost" ? S.bestCost : S.bestTime) +
       best.filter(function(m, i){ return best.map(function(x){ return x.family; }).indexOf(m.family)===i; })
-        .map(function(m){ return "<b>"+esc(m.family)+"</b>"; }).join(" → ") + ". Наведите на точку, чтобы увидеть цену и уровень размышлений.";
+        .map(function(m){ return "<b>"+esc(m.family)+"</b>"; }).join(" → ") + S.bestHint;
   }
   box.addEventListener("click", function(e){
     var b = e.target.closest ? e.target.closest("button") : null;
@@ -565,7 +586,7 @@ function setupCompare(box, d){
     var n = e.target.getAttribute("data-f");
     if(n==null) return;
     if(e.target.checked) sel[n] = 1; else delete sel[n];
-    count.textContent = Object.keys(sel).length+" из "+Object.keys(fams).length;
+    count.textContent = Object.keys(sel).length+S.of+Object.keys(fams).length;
     draw();
   });
   q.addEventListener("input", renderList);
@@ -581,7 +602,7 @@ function ready(){ var r = document.getElementById("eyai"); if(r) r.classList.rem
 
 function refresh(){
   if(!window.fetch || !window.DOMParser) return ready();
-  fetch(BASE+"guide.html",{cache:"no-cache"}).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(t){
+  fetch(BASE+GUIDE,{cache:"no-cache"}).then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(function(t){
     var doc = new DOMParser().parseFromString(t,"text/html");
     var fresh = doc.getElementById("eyai"), cur = document.getElementById("eyai");
     if(!fresh || !cur || fresh.getAttribute("data-v")===cur.getAttribute("data-v")) return ready();
