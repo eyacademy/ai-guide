@@ -354,15 +354,18 @@ function initRating(){
 
 /* tabs for the subscription tables */
 function initPlans(){
-  var box = document.querySelector("#eyai .pl-box");
-  if(!box || box.getAttribute("data-on")) return;
-  box.setAttribute("data-on", "1");
-  box.querySelector(".pl-tabs").addEventListener("click", function(e){
-    var b = e.target.closest ? e.target.closest("button") : null;
-    if(!b) return;
-    var btns = box.querySelectorAll(".pl-tabs button"), panels = box.querySelectorAll(".pl-panel"), k = Array.prototype.indexOf.call(btns, b);
-    for(var i=0;i<btns.length;i++){ btns[i].classList.toggle("on", i===k); panels[i].hidden = i!==k; }
-  });
+  var boxes = document.querySelectorAll("#eyai .pl-box");
+  for(var n=0;n<boxes.length;n++) (function(box){
+    if(box.getAttribute("data-on")) return;
+    box.setAttribute("data-on", "1");
+    var bar = box.querySelector(".pl-tabs");
+    bar.addEventListener("click", function(e){
+      var b = e.target.closest ? e.target.closest("button") : null;
+      if(!b) return;
+      var btns = bar.querySelectorAll("button"), panels = box.querySelectorAll(":scope > .pl-panel"), k = Array.prototype.indexOf.call(btns, b);
+      for(var i=0;i<btns.length;i++){ btns[i].classList.toggle("on", i===k); panels[i].hidden = i!==k; }
+    });
+  })(boxes[n]);
 }
 
 function initCompare(){

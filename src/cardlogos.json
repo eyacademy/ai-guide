@@ -3,10 +3,10 @@
 "Perplexity": "perplexity-color.svg",
 "Grok": "grok.svg",
 "Grok Imagine": "grok.svg",
-"Grok Bot": "grok.svg",
+"Grok Bot": "grokbot.svg",
 "Genspark": "sites/genspark.ai.png",
 "Meta AI": "metaai-color.svg",
-"Muse": "metaai-color.svg",
+"Muse": "muse-color.svg",
 "Mistral Vibe": "mistral-color.svg",
 "Qwen": "qwen-color.svg",
 "Z.ai (GLM)": "zai.svg",
@@ -101,5 +101,6 @@
 "Gemini": "gemini-color.svg",
 "Copilot": "copilot-color.svg",
 "Higgsfield": "sites/higgsfield.ai.png",
-"Google Labs": "google-color.svg"
+"Google Labs": "google-color.svg",
+"mcp.so": "mcpso-color.svg"
 }

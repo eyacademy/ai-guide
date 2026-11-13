@@ -55,6 +55,26 @@ def sec(id_, num, title, lead, body):
     l = f'<p class="sec-lead">{lead}</p>' if lead else ""
     return f'<section id="eyai-{id_}">\n<div class="sec-h"><span class="num">{num}</span><h2>{title}</h2></div>\n{l}\n{body}\n</section>\n'
 
+SHORT = {"Агенты в рабочих чатах команды": "В чатах команды", "Агенты на вашем компьютере": "На компьютере",
+         "Агенты в облаке, 24/7": "В облаке, 24/7", "Агенты на сервере компании": "На сервере компании",
+         "MCP: подключение ИИ к вашим системам": "MCP", "Автоматизация без программирования": "Автоматизация",
+         "Аватары и перевод видео": "Аватары и перевод", "Сайты и приложения без программирования": "Сайты и приложения",
+         "Документы, презентации, инфографика": "Документы и презентации", "Запуск моделей на своём оборудовании": "Свои модели",
+         "Фото, видео и аудио": "Фото, видео, аудио", "Проверка на плагиат": "Плагиат"}
+
+
+def tabify(body):
+    """Turn a run of h3 + caption + cards into one framed block with a tab per subsection."""
+    tabs = []
+    for part in [x for x in re.split(r"(?=<h3>)", body) if x.strip()]:
+        m = re.match(r'<h3>(.*?)</h3>(?:<p class="cap">(.*?)</p>)?', part, re.S)
+        tabs.append((m.group(1), m.group(2), part[m.end():]))
+    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{SHORT.get(t, t)}</button>' for i, (t, _, _) in enumerate(tabs))
+    panels = "".join(f'<div class="pl-panel"{" hidden" if i else ""}>' + (f'<p class="pcap">{c}</p>' if c else "") + b + "</div>"
+                     for i, (_, c, b) in enumerate(tabs))
+    return f'<div class="pl-box"><div class="pl-tabs">{btns}</div>{panels}</div>'
+
+
 def h3(t, cap=None):
     return f"<h3>{t}</h3>" + (f'<p class="cap">{cap}</p>' if cap else "")
 
@@ -159,7 +179,6 @@ ag += h3("Агенты на вашем компьютере", "Работают 
 ag += grid([
     ("ChatGPT Work", "Режим ChatGPT для длинных задач: исследует, собирает документы, таблицы и презентации.", "https://chatgpt.com"),
     ("Claude Cowork", "Агент для офисной работы: файлы, программы, браузер. Готовит docx, xlsx, pptx, выполняет задачи по расписанию.", "https://claude.com/product/cowork"),
-    ("Claude в Chrome", "Claude открывает сайты, нажимает кнопки и заполняет формы в браузере.", "https://claude.com/claude-in-chrome"),
     ("Manus", "Универсальный агент: исследования, отчёты, сайты по одной задаче.", "https://manus.im"),
 ])
 ag += h3("Агенты в облаке, 24/7", "Новый класс агентов: у каждого свой облачный компьютер с браузером. Ничего не нужно устанавливать, задачи идут даже при закрытом ноутбуке. Данные хранятся у поставщика.")
@@ -189,7 +208,8 @@ ag += grid([
     ("Документация MCP", "Официальное описание протокола и примеры.", "https://modelcontextprotocol.io"),
     ("MCP Registry", "Официальный реестр публичных MCP-серверов.", "https://registry.modelcontextprotocol.io", None, False, "modelcontextprotocol.io"),
     ("Smithery", "Каталог MCP-серверов с установкой в пару кликов.", "https://smithery.ai"),
-    ("Glama", "Поиск по 90 000+ MCP-серверов.", "https://glama.ai/mcp/servers"),
+    ("Glama", "Самый большой каталог MCP-серверов с поиском.", "https://glama.ai/mcp/servers"),
+    ("mcp.so", "Большой открытый каталог MCP-серверов от сообщества.", "https://mcp.so"),
 ])
 ag += '<p class="note"><b>Агенты и MCP-серверы действуют сами.</b> Перед подключением к рабочим данным ограничьте права доступа и проверьте, кто автор сервера.</p>'
 ag += h3("Автоматизация без программирования", "Цепочки действий между сервисами: письмо пришло, ИИ разобрал, задача появилась в CRM.")
@@ -199,21 +219,10 @@ ag += grid([
     ("Make", "Визуальный конструктор сценариев с ветками и условиями.", "https://www.make.com/en", None, False, "make.com"),
 ])
 out.append(sec("agents", "03", "ИИ-агенты",
-               "Чат-бот отвечает на вопросы. Агент сам выполняет задачу: планирует шаги, пользуется инструментами и доводит работу до результата.", ag))
+               "Чат-бот отвечает на вопросы. Агент сам выполняет задачу: планирует шаги, пользуется инструментами и доводит работу до результата.", tabify(ag)))
 
 # 5. media
-m = ('<div class="feature"><div><span class="by">Из Казахстана</span><h3>' + logo("Higgsfield", "vl", 30) + 'Higgsfield</h3>'
-     "<p>Платформа для фото и видео, первый казахстанский единорог, команда в основном из выпускников Назарбаев Университета. "
-     "Собирает в одном месте лучшие модели (Seedance, Kling, Veo, Nano Banana, Wan) и собственные инструменты. Главный выбор маркетологов для роликов в соцсети.</p>"
-     '<div class="pills"><span class="pill top">Cinema Studio 4.0</span><span class="pill">Soul ID</span><span class="pill">Speak</span><span class="pill">Marketing Studio</span><span class="pill">Popcorn</span></div>'
-     + links([("Открыть Higgsfield", "https://higgsfield.ai", "higgsfield.ai")]) + "</div>"
-     '<ul class="plain">'
-     "<li><b>Cinema Studio.</b> Киношные ролики до 30 секунд: движения камеры, свет, эмоции актёров.</li>"
-     "<li><b>Soul ID.</b> Постоянный персонаж по вашим фотографиям.</li>"
-     "<li><b>Speak.</b> Говорящий аватар и голос по сценарию.</li>"
-     "<li><b>Marketing Studio.</b> Реклама из фото товара по готовым шаблонам.</li>"
-     "<li><b>Popcorn.</b> Раскадровка до 8 кадров с одним персонажем и светом.</li>"
-     "</ul></div>")
+m = ""
 m += h3("Изображения")
 m += grid([
     ("ChatGPT Images 2.5", "Генерация и точное редактирование прямо в ChatGPT. Читаемый текст на картинках, в том числе на кириллице.", "https://chatgpt.com"),
@@ -226,6 +235,7 @@ m += grid([
 ])
 m += h3("Видео")
 m += grid([
+    ("Higgsfield", "Казахстанский единорог: лучшие модели (Seedance, Kling, Veo, Nano Banana, Wan) и свои инструменты Cinema Studio, Soul ID и Speak. Выбор маркетологов для роликов в соцсети.", "https://higgsfield.ai", "из Казахстана"),
     ("Veo 3.1 и Google Flow", "Видео со звуком по тексту и картинкам. Flow это студия Google для монтажа сцен.", "https://flow.google.com"),
     ("Gemini Omni Flash", "Создание и правка видео в диалоге: «убери человека слева», «сделай закат».", "https://deepmind.google/models/gemini-omni/"),
     ("Seedance 2.5", "Модель ByteDance: ролики до 30 секунд. Доступна в Dreamina (CapCut) и Higgsfield.", "https://dreamina.capcut.com"),
@@ -254,7 +264,7 @@ m += grid([
     ("Figma Make", "Кликабельный прототип интерфейса по описанию.", "https://www.figma.com/make/"),
 ])
 out.append(sec("media", "04", "Креативы: фото, видео, голос",
-               "Многие сервисы дают доступ к чужим моделям, поэтому одна и та же модель встречается в разных местах. Выбирайте по удобству и цене.", m))
+               "Многие сервисы дают доступ к чужим моделям, поэтому одна и та же модель встречается в разных местах. Выбирайте по удобству и цене.", tabify(m)))
 
 # 6. tools
 t = h3("Сайты и приложения без программирования")
@@ -280,7 +290,7 @@ t += grid([
     ("tl;dv", "Запись и конспект встреч, хранение данных в ЕС.", "https://tldv.io"),
     ("Plaud", "Карманный диктофон с ИИ для офлайн-встреч.", "https://www.plaud.ai"),
 ])
-out.append(sec("tools", "05", "Полезные сервисы", None, t))
+out.append(sec("tools", "05", "Полезные сервисы", None, tabify(t)))
 
 # 7. company
 c = ""
@@ -304,7 +314,7 @@ c += grid([
     ("Olares", "Готовая операционная система для локального ИИ.", "https://www.olares.com"),
     '<div class="card"><b>PocketPal</b><p>Небольшие модели на телефоне, без интернета.</p><small><a href="https://play.google.com/store/apps/details?id=com.pocketpalai" target="_blank" rel="noopener" style="text-decoration:underline">Android</a> · <a href="https://apps.apple.com/kz/app/pocketpal-ai/id6502579498" target="_blank" rel="noopener" style="text-decoration:underline">iOS</a></small></div>',
 ])
-out.append(sec("company", "06", "ИИ в своей компании", None, c))
+out.append(sec("company", "06", "ИИ в своей компании", None, tabify(c)))
 
 # 8. detect
 d = h3("Фото, видео и аудио", "Если метки нет, это ещё не значит, что файл создал человек.")
@@ -326,7 +336,7 @@ d += grid([
     ("QuillBot", "Проверка на 100+ языках, входит в Premium.", "https://quillbot.com/plagiarism-checker"),
     ("Scribbr", "Проверка академических работ на технологии Turnitin.", "https://www.scribbr.com"),
 ])
-out.append(sec("detect", "07", "Проверка: ИИ или не ИИ", None, d))
+out.append(sec("detect", "07", "Проверка: ИИ или не ИИ", None, tabify(d)))
 
 out.append("</div>")
 out.append('<div class="cta"><div class="w"><div><h2>Хотите научить команду работать с ИИ?</h2><p>Корпоративные тренинги Академии бизнеса EY под задачи вашей компании.</p></div>'
