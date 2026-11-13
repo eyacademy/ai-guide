@@ -81,6 +81,9 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .bar .n > span{position:absolute;right:50%;top:0;width:112px;font-size:12px;text-align:right;transform-origin:100% 0;transform:rotate(-45deg);white-space:normal}
 #eyai .bar .n small{display:none}
 #eyai .bar:hover .n{font-weight:700}
+#eyai .bar .f{position:relative}
+#eyai .bar .f.sm{color:var(--ink)}
+#eyai .bar .f.sm em{position:absolute;bottom:100%;left:0;right:0;text-align:center;padding-bottom:4px}
 }
 
 /* notes, tables, lists */
@@ -240,3 +243,22 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 }
 #eyai .pl-m{table-layout:fixed}
 #eyai .pl-m th:first-child{width:24%}
+
+/* rating tabs */
+#eyai .bar .f em{font-style:normal}
+#eyai .bar.neg .f{opacity:.5}
+#eyai .rt{margin:-4px 0 18px}
+#eyai .rt-tabs,#eyai .rt-subs,#eyai .pl-tabs{display:flex;flex-wrap:wrap;gap:8px}
+#eyai .rt-subs{margin-top:10px}
+#eyai .rt-subs[hidden],#eyai .pl-panel[hidden]{display:none}
+#eyai .rt button,#eyai .pl-tabs button{font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);padding:8px 14px;cursor:pointer;border-radius:0;transition:background .15s,border-color .15s}
+#eyai .rt-subs button{font-size:13px;padding:5px 11px;background:var(--bg)}
+#eyai .rt button:hover,#eyai .pl-tabs button:hover{border-color:var(--ink)}
+#eyai .rt button.on,#eyai .pl-tabs button.on{background:var(--y);border-color:var(--y);font-weight:700}
+#eyai .rt-note{font-size:14px;color:var(--ink2);margin-top:12px;max-width:820px}
+#eyai .pl-box{background:var(--card);border:1px solid var(--line);padding:18px 20px 6px}
+#eyai .pl-box .cap{margin:14px 0 12px;font-size:14px}
+#eyai .pl-box .pl-wrap{border-radius:10px}
+@media (max-width:600px){#eyai .rt button,#eyai .pl-tabs button{font-size:13px;padding:7px 10px}#eyai .pl-box{padding:14px 12px 4px}}
+#eyai .pl-lg{width:22px;height:22px;margin-right:10px;vertical-align:-4px}
+#eyai .pl-p .pl-lg{width:26px;height:26px;vertical-align:-5px}

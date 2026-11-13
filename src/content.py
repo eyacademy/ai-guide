@@ -48,7 +48,7 @@ out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' 
        '<div class="w">']
 
 # 2. rating
-rating = ('<div class="chart"><div class="chart-top"><span>Топ-{CHART_N} моделей, баллы из 100</span><span>{CHART_DATE}</span></div>'
+rating = ('<div class="chart">{RATING_TABS}<div class="chart-top"><span class="rt-cap">Топ-{CHART_N} моделей, баллы из 100</span><span>{CHART_DATE}</span></div>'
           '<ol class="bars">{CHART_BARS}</ol><div class="legend">{CHART_LEGEND}</div></div>'
           '<p class="src">Источник: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>'
           '{COMPARE}')

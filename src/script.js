@@ -283,13 +283,94 @@ function columns(plot, rows, k){
   svg.addEventListener("pointerleave", function(){ cur=null; bars.forEach(function(o){ o.g.setAttribute("class","col"); }); hideTip(plot); });
 }
 
+var dataP = null;
+function loadData(){
+  if(!dataP) dataP = fetch(BASE+"data/aa-index.json", {cache:"no-cache"})
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .catch(function(e){ dataP = null; throw e; });
+  return dataP;
+}
+
+function colorFrom(colors, creator){
+  var k = creator.toLowerCase();
+  for(var n in colors) if(k.indexOf(n)>=0) return colors[n];
+  return "#9a9aa6";
+}
+
+/* rating tabs: intelligence, knowledge reliability, fields */
+var RT_CAP = {score:"Топ-30 моделей, баллы из 100", omni:"Итоговый балл от −100 до 100", acc:"Доля верных ответов",
+  hall:"Доля выдуманных ответов, меньше — лучше", fin:"Баллы из 100", ops:"Баллы из 100", law:"Баллы из 100",
+  med:"Баллы из 100", eng:"Баллы из 100", eco:"Баллы из 100"};
+var RT_NOTE = {omni:"За верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль. Ниже нуля — модель чаще выдумывает, чем знает.",
+  acc:"Сколько вопросов на знания модель ответила верно. Больше — лучше.",
+  hall:"Как часто модель выдумывает ответ, когда должна была сказать «не знаю». Меньше — лучше."};
+
+function initRating(){
+  var rt = document.querySelector("#eyai .rt");
+  if(!rt || rt.getAttribute("data-on")) return;
+  rt.setAttribute("data-on", "1");
+  var chart = rt.parentNode, ol = chart.querySelector(".bars"), legend = chart.querySelector(".legend"), cap = chart.querySelector(".rt-cap");
+  var note = rt.querySelector(".rt-note"), colors = {};
+  try { colors = JSON.parse(rt.getAttribute("data-colors")); } catch(e){}
+  var tab = "score", metric = "score", tabNote = note.textContent;
+
+  function render(d){
+    var pct = metric==="acc" || metric==="hall", asc = metric==="hall";
+    var list = (metric==="score" ? d.models.map(function(m){ return {name:m.name, creator:m.creator, effort:m.effort, v:m.score}; })
+      : (d.bench||[]).filter(function(m){ return m[metric]!=null; }).map(function(m){ return {name:m.name, creator:m.creator, effort:m.effort, v:m[metric]}; }))
+      .sort(function(a,b){ return asc ? a.v-b.v : b.v-a.v; }).slice(0, 30);
+    var max = Math.max.apply(0, list.map(function(m){ return Math.abs(m.v); })) || 1, seen = {}, leg = [];
+    ol.innerHTML = list.map(function(m, i){
+      var c = colorFrom(colors, m.creator), f = logoFile(m.creator), w = Math.max(3, Math.round(Math.abs(m.v)/max*100));
+      var name = esc(m.name + (m.effort ? " ("+m.effort+")" : "")), r = Math.round(m.v), val = (r<0 ? "−" : "") + Math.abs(r) + (pct ? "%" : "");
+      if(!seen[m.creator]){ seen[m.creator] = 1; leg.push('<span><i style="background:'+c+'"></i>'+esc(m.creator)+'</span>'); }
+      var lo = f ? '<img src="'+BASE+'logos/'+f+'" width="20" height="20" alt="">' : '<b class="lgl" style="--c:'+c+'">'+esc(m.creator.charAt(0).toUpperCase())+'</b>';
+      return '<li class="bar'+(m.v<0 ? " neg" : "")+'" title="'+name+' · '+esc(m.creator)+' · '+val+'"><span class="i">'+(i+1)+'</span><span class="lo">'+lo+'</span>'+
+        '<span class="n"><span>'+name+'</span><small>'+esc(m.creator)+'</small></span><span class="t"><span class="f'+(w<14 ? " sm" : "")+'" style="--c:'+c+';--w:'+w+'%"><em>'+val+'</em></span></span></li>';
+    }).join("");
+    legend.innerHTML = leg.join("");
+    cap.textContent = metric==="score" ? "Топ-"+list.length+" моделей, баллы из 100" : RT_CAP[metric];
+    note.textContent = RT_NOTE[metric] || tabNote;
+  }
+  function show(){
+    var subs = rt.querySelectorAll(".rt-subs");
+    for(var i=0;i<subs.length;i++) subs[i].hidden = subs[i].getAttribute("data-for")!==tab;
+    loadData().then(function(d){ LOGOS = d.logos || LOGOS; render(d); }).catch(function(){});
+  }
+  rt.addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button") : null;
+    if(!b) return;
+    var g = b.parentNode;
+    for(var i=0;i<g.children.length;i++) g.children[i].classList.toggle("on", g.children[i]===b);
+    if(b.getAttribute("data-rt")){
+      tab = b.getAttribute("data-rt"); tabNote = b.getAttribute("data-note");
+      var s = rt.querySelector('.rt-subs[data-for="'+tab+'"] .on');
+      metric = s ? s.getAttribute("data-m") : tab;
+    }
+    if(b.getAttribute("data-m")) metric = b.getAttribute("data-m");
+    show();
+  });
+}
+
+/* tabs for the subscription tables */
+function initPlans(){
+  var box = document.querySelector("#eyai .pl-box");
+  if(!box || box.getAttribute("data-on")) return;
+  box.setAttribute("data-on", "1");
+  box.querySelector(".pl-tabs").addEventListener("click", function(e){
+    var b = e.target.closest ? e.target.closest("button") : null;
+    if(!b) return;
+    var btns = box.querySelectorAll(".pl-tabs button"), panels = box.querySelectorAll(".pl-panel"), k = +b.getAttribute("data-p");
+    for(var i=0;i<btns.length;i++){ btns[i].classList.toggle("on", i===k); panels[i].hidden = i!==k; }
+  });
+}
+
 function initCompare(){
   var box = document.querySelector("#eyai .cmp");
   if(!box || box.getAttribute("data-on") || !window.fetch) return;
   box.setAttribute("data-on", "1");
   var plot = box.querySelector(".cmp-plot");
-  fetch(BASE+"data/aa-index.json", {cache:"no-cache"}).then(function(r){ if(!r.ok) throw 0; return r.json(); })
-    .then(function(d){ setupCompare(box, d); })
+  loadData().then(function(d){ setupCompare(box, d); })
     .catch(function(){ empty(plot, "Не удалось загрузить данные. Обновите страницу."); });
 }
 
@@ -381,6 +462,8 @@ function refresh(){
     cur.parentNode.replaceChild(document.importNode(fresh,true), cur);
     bindToc();
     initCompare();
+    initRating();
+    initPlans();
     ready();
   }).catch(ready);
 }
@@ -389,5 +472,7 @@ window.addEventListener("scroll", onScroll, {passive:true});
 window.addEventListener("resize", onScroll);
 bindToc();
 initCompare();
+initRating();
+initPlans();
 refresh();
 })();

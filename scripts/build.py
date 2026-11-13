@@ -126,7 +126,8 @@ def subscriptions(data):
     short = lambda n: re.sub(r"^Claude ", "", n)
     rows, marks, tables = [], set(), []
     for pv in cfg["providers"]:
-        dot = f'<i style="background:{pv["color"]}"></i>'
+        dot = (f'<img class="pl-lg" src="{BASE}logos/{pv["logo"]}" width="22" height="22" alt="">' if pv.get("logo")
+               else f'<i style="background:{pv["color"]}"></i>')
         rows.append(f'<tr class="pl-h"><th colspan="4">{dot}{pv["name"]}</th></tr>')
         for pl in pv["plans"]:
             usd, star = pv["budget"] * pl["x"], "**" if pl.get("rough") else "*" if pl.get("unofficial") else ""
@@ -184,13 +185,44 @@ def subscriptions(data):
         foot.append("* Множители Pro неофициальные.")
     if "**" in marks:
         foot.append("** Для Go данных почти нет, это грубая оценка.")
-    return (h3_sub("Сколько даёт подписка",
-                   "Сколько стоила бы та же работа по ценам API. Оценки по замерам пользователей: компании не публикуют лимиты в долларах.")
-            + summary + f'<p class="src">{" ".join(foot)}</p>'
-            + h3_sub("Сколько ответов агента в месяц",
-                     f"Ответ — один ход агента в Claude Code или Codex. В обычном чате сообщений получится больше. "
-                     f"Числа пересчитываются каждый день по текущим ценам моделей, тарифы — на {cfg['as_of']}.")
-            + "".join(tables))
+    names = ["Подписка и API"] + [f'{pv["name"]} по моделям' for pv in cfg["providers"]]
+    caps = ["Сколько стоила бы та же работа по ценам API. " + " ".join(foot)] + [
+        f"Сколько ответов агента в месяц. Ответ — один ход агента в Claude Code или Codex, в обычном чате сообщений получится больше. "
+        f"Числа пересчитываются каждый день по текущим ценам моделей."] * len(tables)
+    panels = [summary] + tables
+    tabs = "".join(f'<button type="button" data-p="{i}"{" class=on" if i == 0 else ""}>{n}</button>' for i, n in enumerate(names))
+    body = "".join(f'<div class="pl-panel"{" hidden" if i else ""}><p class="cap">{caps[i]}</p>{p}</div>' for i, p in enumerate(panels))
+    return (h3_sub("Сколько даёт подписка", f"Оценки по замерам пользователей на {cfg['as_of']}: компании не публикуют лимиты в долларах.")
+            + f'<div class="pl-box"><div class="pl-tabs">{tabs}</div>{body}</div>')
+
+
+RT = [("score", "Интеллект", [("score", "")],
+       "Общий индекс: 10 тестов на агентные задачи, программирование, знания и научное мышление."),
+      ("know", "Надёжность знаний", [("omni", "Итог"), ("acc", "Точность"), ("hall", "Галлюцинации")],
+       "Вопросы на знания: за верный ответ плюс, за выдуманный минус, за честное «не знаю» ноль."),
+      ("field", "По сферам", [("fin", "Финансы и учёт"), ("ops", "Стратегия и операции"), ("law", "Право"),
+                              ("med", "Медицина"), ("eng", "Инженерия"), ("eco", "Экономика")],
+       "Как модель справляется с рабочими задачами в отдельной сфере. Больше — лучше.")]
+
+
+def rating_tabs(data):
+    rows = data.get("bench") or []
+    has = lambda k: k == "score" or sum(1 for m in rows if m.get(k) is not None) >= 5
+    tabs = [(i, t, [s for s in subs if has(s[0])], note) for i, t, subs, note in RT]
+    tabs = [t for t in tabs if t[2]]
+    if len(tabs) < 2:
+        return ""
+    colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)
+    out = [f'<div class="rt" data-colors="{colors}"><div class="rt-tabs">']
+    for n, (i, t, subs, note) in enumerate(tabs):
+        out.append(f'<button type="button" data-rt="{i}" data-note="{html.escape(note)}"{" class=on" if n == 0 else ""}>{t}</button>')
+    out.append("</div>")
+    for i, t, subs, note in tabs:
+        if len(subs) > 1:
+            out.append(f'<div class="rt-subs" data-for="{i}" hidden>' + "".join(
+                f'<button type="button" data-m="{k}"{" class=on" if n == 0 else ""}>{lbl}</button>' for n, (k, lbl) in enumerate(subs)) + "</div>")
+    out.append(f'<p class="rt-note">{html.escape(tabs[0][3])}</p></div>')
+    return "".join(out)
 
 
 def h3_sub(t, cap):
@@ -203,7 +235,7 @@ os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
 body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {})})["BODY"]
 count, bars, legend, date = chart(data)
-body = body.replace("{SUBS}", subscriptions(data)).replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
+body = body.replace("{RATING_TABS}", rating_tabs(data)).replace("{SUBS}", subscriptions(data)).replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
 body = body.replace("{VERSION}", version, 1)

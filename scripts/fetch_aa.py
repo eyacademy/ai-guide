@@ -43,6 +43,24 @@ def metrics(m):
             "tokens_total": tokens_total and round(tokens_total)}
 
 
+BENCH = {"omni": "aa_omniscience_index", "acc": "aa_omniscience_accuracy", "nonhall": "aa_omniscience_non_hallucination_rate",
+         "fin": "artificial_analysis_finance_and_accounting_index", "ops": "artificial_analysis_strategy_and_ops_index",
+         "law": "artificial_analysis_legal_index", "med": "artificial_analysis_healthcare_and_medical_index",
+         "eng": "artificial_analysis_engineering_index", "eco": "artificial_analysis_economics_index"}
+
+
+def bench(ev):
+    # Knowledge (Pro keys only) and per-field capability indexes. Rates become percentages.
+    out = {}
+    for k, f in BENCH.items():
+        v = ev.get(f)
+        if isinstance(v, (int, float)):
+            out[k] = round(v * 100 if k in ("acc", "nonhall") else v, 1)
+    if "nonhall" in out:
+        out["hall"] = round(100 - out.pop("nonhall"), 1)
+    return out
+
+
 def pages(url, key):
     models, page = [], 1
     while page <= 10:
@@ -77,6 +95,7 @@ def fetch():
         if name not in best or score > best[name]["score"]:
             pr = m.get("pricing") or {}
             best[name] = {"name": name, "creator": creator, "score": round(score), "effort": effort,
+                          "bench": bench(m.get("evaluations") or {}),
                           "price": [num(pr.get("price_1m_input_tokens")), num(pr.get("price_1m_output_tokens"))],
                           "released": m.get("release_date") or "", **metrics(m)}
     current = sorted(latest(best.values()), key=lambda x: -x["score"])
@@ -92,8 +111,10 @@ def fetch():
     default = [m["name"] for m in current if m["released"] >= year_ago and any(v["family"] == m["name"] for v in variants)][:12]
     # API list prices of current models, $ per million input/output tokens, for the subscription tables.
     prices = {m["name"]: m["price"] for m in current if all(m["price"])}
+    benches = [{"name": m["name"], "creator": m["creator"], "effort": m["effort"], **m["bench"]}
+               for m in current if m["bench"] and m["released"] >= year_ago]
     return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator,
-            "variants": variants, "default": default, "prices": prices}
+            "variants": variants, "default": default, "prices": prices, "bench": benches}
 
 try:
     data = fetch()
