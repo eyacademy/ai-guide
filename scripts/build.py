@@ -57,6 +57,9 @@ def compare(data):
     rows = [dict(m, c=color(m["creator"])) for m in data.get("compare") or []]
     has = lambda k: sum(1 for m in rows if m.get(k)) >= 5
     tabs = [t for t in TABS if any(has(k) for k in t[2])]
+    if not has("tokens"):
+        tabs = [("tokens", "Стоимость", t[2], "Сколько стоит одна задача и весь прогон рейтинга по ценам API. Меньше — лучше.")
+                if t[0] == "tokens" else t for t in tabs]
     if not has("cost"):
         return ""
     tab_html = "".join(f'<button type="button" data-tab="{i}" data-note="{html.escape(note)}"{" class=on" if n == 0 else ""}>{t}</button>'
