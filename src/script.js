@@ -360,6 +360,18 @@ function initRating(){
   });
 }
 
+/* phones: the rating list starts collapsed */
+function initMore(){
+  var btn = document.querySelector("#eyai .rt-more");
+  if(!btn || btn.getAttribute("data-on")) return;
+  btn.setAttribute("data-on", "1");
+  var ol = btn.parentNode.querySelector(".bars");
+  function label(){ var n = ol.children.length; btn.hidden = n <= 10; btn.textContent = ol.classList.contains("cut") ? "Показать все " + n : "Свернуть"; }
+  btn.addEventListener("click", function(){ ol.classList.toggle("cut"); label(); });
+  new MutationObserver(label).observe(ol, {childList:true});
+  label();
+}
+
 /* tabs for the subscription tables */
 function initPlans(){
   var boxes = document.querySelectorAll("#eyai .pl-box");
@@ -475,6 +487,7 @@ function refresh(){
     initCompare();
     initRating();
     initPlans();
+    initMore();
     ready();
   }).catch(ready);
 }
@@ -485,5 +498,6 @@ bindToc();
 initCompare();
 initRating();
 initPlans();
+initMore();
 refresh();
 })();

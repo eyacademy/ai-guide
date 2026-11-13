@@ -99,7 +99,7 @@ out = ['<div id="eyai" data-v="{VERSION}">', '<div class="toc"><div class="w">' 
 
 # 2. rating
 rating = ('<div class="chart">{RATING_TABS}<div class="rt-main"><div class="chart-top"><span class="rt-cap">Топ-{CHART_N} моделей, баллы из 100</span><span class="rt-date">{CHART_DATE}</span></div>'
-          '<ol class="bars">{CHART_BARS}</ol><div class="legend">{CHART_LEGEND}</div></div><div class="rt-value" hidden>{COMPARE}</div></div>'
+          '<ol class="bars cut">{CHART_BARS}</ol><button type="button" class="rt-more">Показать все</button><div class="legend">{CHART_LEGEND}</div></div><div class="rt-value" hidden>{COMPARE}</div></div>'
           '<p class="src">Источник: <a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis</a></p>')
 out.append(sec("rating", "01", "Рейтинг моделей",
                "Artificial Analysis Intelligence Index. Независимая лаборатория прогоняет модели через 10 тестов: агентные задачи, программирование, знания, научное мышление. Чем выше балл, тем лучше модель справляется со сложной работой.",

@@ -213,6 +213,8 @@ def rating_tabs(data, value=False):
     tabs = [t for t in tabs if t[2]]
     if value:
         tabs.append(("value", "Цена и выгода", [], VALUE_NOTE))
+    order = ["score", "field", "value", "know"]
+    tabs.sort(key=lambda t: order.index(t[0]))
     if len(tabs) < 2:
         return ""
     colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)

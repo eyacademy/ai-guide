@@ -310,3 +310,21 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .rt-value .cmp-box{border:0;padding:0;background:none}
 #eyai .rt-value .cmp-tabs button{font-size:13px;padding:5px 11px;background:var(--bg)}
 #eyai .rt-value .cmp-tabs button.on{background:var(--y)}
+
+/* phones: one line per model, first 10 until "show all" */
+#eyai .rt-more{display:none}
+@media (max-width:700px){
+#eyai .bars{margin:0}
+#eyai .bar{grid-template-columns:18px 18px minmax(0,1fr) 44%;gap:8px;align-items:center;padding:4px 0}
+#eyai .bar .i{font-size:12px;text-align:right}
+#eyai .bar .lo{display:flex;align-items:center;justify-content:center}
+#eyai .bar .lo img,#eyai .bar .lo .lgl{width:16px;height:16px;font-size:9px}
+#eyai .bar .n{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#eyai .bar .n small{display:none}
+#eyai .bar .t{grid-column:auto;height:20px}
+#eyai .bar .f{font-size:12px;padding-right:6px;min-width:30px}
+#eyai .bars.cut .bar:nth-child(n+11){display:none}
+#eyai .rt-more{display:block;width:100%;margin-top:10px;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line);padding:9px;cursor:pointer;border-radius:0}
+#eyai .rt-more:hover{border-color:var(--ink)}
+}
+#eyai .rt-more[hidden]{display:none!important}
