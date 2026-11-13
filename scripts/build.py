@@ -16,11 +16,11 @@ MONTHS = ["января", "февраля", "марта", "апреля", "ма�
 LOGOS = json.load(open(os.path.join(SRC, "logos.json"), encoding="utf-8"))
 
 
-def logo(creator, c, size=18):
+def logo(creator, c, size=20):
     k = creator.lower()
-    d = next((p for n, p in LOGOS.items() if n in k), None)
-    if d:
-        return f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" aria-hidden="true"><path fill="{c}" d="{d}"/></svg>'
+    f = next((p for n, p in LOGOS.items() if n in k), None)
+    if f:
+        return f'<img src="{BASE}logos/{f}" width="{size}" height="{size}" alt="" loading="lazy">'
     return f'<b class="lgl" style="--c:{c}">{html.escape(creator[:1].upper())}</b>'
 
 
@@ -37,7 +37,7 @@ def load_data():
 
 
 def chart(data):
-    models = data["models"][:20]
+    models = data["models"][:30]
     top = max(m["score"] for m in models)
     bars, legend, seen = [], [], set()
     for i, m in enumerate(models, 1):
@@ -50,7 +50,7 @@ def chart(data):
             seen.add(m["creator"])
             legend.append(f'<span><i style="background:{c}"></i>{creator}</span>')
     d = datetime.fromisoformat(data["updated"].replace("Z", "+00:00"))
-    return "".join(bars), "".join(legend), f"Обновлено {d.day} {MONTHS[d.month - 1]} {d.year} · обновляется ежедневно"
+    return len(models), "".join(bars), "".join(legend), f"Обновлено {d.day} {MONTHS[d.month - 1]} {d.year} · обновляется ежедневно"
 
 
 TABS = [("cost", "Интеллект и цена", ("cost",),
@@ -101,8 +101,8 @@ data["logos"] = LOGOS
 os.makedirs(os.path.join(OUT, "data"), exist_ok=True)
 json.dump(data, open(os.path.join(OUT, "data", "aa-index.json"), "w", encoding="utf-8"), ensure_ascii=False)
 body = runpy.run_path(os.path.join(SRC, "content.py"), init_globals={"MODELS": data.get("by_creator", {})})["BODY"]
-bars, legend, date = chart(data)
-body = body.replace("{COMPARE}", compare(data)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
+count, bars, legend, date = chart(data)
+body = body.replace("{COMPARE}", compare(data)).replace("{CHART_N}", str(count)).replace("{CHART_BARS}", bars).replace("{CHART_LEGEND}", legend).replace("{CHART_DATE}", date)
 css = open(os.path.join(SRC, "style.css"), encoding="utf-8").read()
 version = hashlib.sha1((css + body).encode("utf-8")).hexdigest()[:12]
 body = body.replace("{VERSION}", version, 1)
@@ -122,4 +122,5 @@ open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(
     '<style>body{margin:0;background:#f6f6fa}#eyai{padding-top:0!important}</style></head><body>'
     + style + body + script + "</body></html>")
 shutil.copy(os.path.join(SRC, "script.js"), os.path.join(OUT, "script.js"))
+shutil.copytree(os.path.join(SRC, "logos"), os.path.join(OUT, "logos"), dirs_exist_ok=True)
 print("version", version, "|", date)

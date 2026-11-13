@@ -1,0 +1,3 @@
+Logos from LobeHub Icons (@lobehub/icons-static-svg 1.102.0), MIT License.
+https://github.com/lobehub/lobe-icons
+The marks are trademarks of their respective companies.

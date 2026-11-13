@@ -78,10 +78,14 @@ function el(name, attrs, parent){
 }
 
 var LOGOS = {};
+function logoFile(creator){
+  var k = creator.toLowerCase();
+  for(var n in LOGOS) if(k.indexOf(n)>=0) return LOGOS[n];
+  return null;
+}
 function logo(parent, cx, y, size, creator, color){
-  var k = creator.toLowerCase(), d = null;
-  for(var n in LOGOS) if(k.indexOf(n)>=0){ d = LOGOS[n]; break; }
-  if(d) return el("path", {d:d, fill:color, transform:"translate("+(cx-size/2)+" "+y+") scale("+(size/24)+")"}, parent);
+  var f = logoFile(creator);
+  if(f) return el("image", {href:BASE+"logos/"+f, x:cx-size/2, y:y, width:size, height:size}, parent);
   el("circle", {cx:cx, cy:y+size/2, r:size/2, fill:color}, parent);
   el("text", {x:cx, y:y+size/2+4, "text-anchor":"middle", "class":"lgt"}, parent).textContent = creator.charAt(0).toUpperCase();
 }
@@ -315,8 +319,8 @@ function setupCompare(box, d){
       groups[f.creator].push(f);
     });
     list.innerHTML = order.map(function(c){
-      var lg = document.createElementNS(NS, "svg"); lg.setAttribute("viewBox", "0 0 24 24"); logo(lg, 12, 0, 24, c, groups[c][0].c);
-      return '<div class="cmp-grp"><span>'+lg.outerHTML+esc(c)+'</span>'+groups[c].map(function(f){
+      var lf = logoFile(c), lg = lf ? '<img src="'+BASE+'logos/'+lf+'" alt="">' : '<i class="lgd" style="background:'+groups[c][0].c+'"></i>';
+      return '<div class="cmp-grp"><span>'+lg+esc(c)+'</span>'+groups[c].map(function(f){
         return '<label><input type="checkbox" data-f="'+esc(f.name)+'"'+(sel[f.name]?" checked":"")+'><i style="background:'+f.c+'"></i><em>'+esc(f.name)+'</em><small>'+fmt("score", f.best.score)+'</small></label>';
       }).join("")+'</div>';
     }).join("") || '<p class="cmp-empty">Ничего не найдено</p>';

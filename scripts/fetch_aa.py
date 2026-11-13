@@ -82,7 +82,7 @@ def fetch():
     for m in current:
         if m["released"] >= year_ago:
             by_creator.setdefault(m["creator"], []).append(m["name"])
-    top = [{k: m[k] for k in ("name", "creator", "score", "effort")} for m in current[:20]]
+    top = [{k: m[k] for k in ("name", "creator", "score", "effort")} for m in current[:30]]
     if len(top) < 5:
         raise ValueError("too few models")
     # Chart picker: every variant from the last year; the top current lines are ticked by default.
