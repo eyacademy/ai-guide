@@ -54,25 +54,30 @@ SUBS = [("tokens", "Токены на задачу"), ("tokens_total", "Всег
 
 
 def compare(data):
-    rows = [dict(m, c=color(m["creator"])) for m in data.get("compare") or []]
+    rows = data.get("variants") or []
     has = lambda k: sum(1 for m in rows if m.get(k)) >= 5
+    if not has("cost"):
+        return ""
     tabs = [t for t in TABS if any(has(k) for k in t[2])]
     if not has("tokens"):
         tabs = [("tokens", "Стоимость", t[2], "Сколько стоит одна задача и весь прогон рейтинга по ценам API. Меньше — лучше.")
                 if t[0] == "tokens" else t for t in tabs]
-    if not has("cost"):
-        return ""
     tab_html = "".join(f'<button type="button" data-tab="{i}" data-note="{html.escape(note)}"{" class=on" if n == 0 else ""}>{t}</button>'
                        for n, (i, t, _, note) in enumerate(tabs))
     subs = [(k, t) for k, t in SUBS if has(k)]
     sub_html = "".join(f'<button type="button" data-sub="{k}"{" class=on" if n == 0 else ""}>{t}</button>' for n, (k, t) in enumerate(subs))
-    payload = html.escape(json.dumps(rows, ensure_ascii=False, separators=(",", ":")), quote=True)
-    return (f'<div class="cmp" data-models="{payload}">'
-            f'<h3>Какая модель выгоднее</h3><p class="cap">Наведите на точку или строку, чтобы увидеть подробности. '
-            f'Цена задачи — средняя стоимость одной задачи из рейтинга по ценам API.</p>'
+    colors = html.escape(json.dumps(COLORS, separators=(",", ":")), quote=True)
+    return (f'<div class="cmp" data-colors="{colors}">'
+            f'<h3>Какая модель выгоднее</h3><p class="cap">Наведите на точку или столбец, чтобы увидеть подробности. '
+            f'Справа можно выбрать модели и уровни размышлений. Цена задачи — средняя стоимость одной задачи из рейтинга по ценам API.</p>'
             f'<div class="cmp-box"><div class="cmp-tabs">{tab_html}</div>'
             f'<div class="cmp-subs" hidden>{sub_html}</div><p class="cmp-note">{html.escape(tabs[0][3])}</p>'
-            f'<div class="cmp-plot"></div><div class="cmp-best"></div></div></div>')
+            f'<div class="cmp-wrap"><div class="cmp-main"><div class="cmp-plot"><p class="cmp-load">Загружаем данные…</p></div><div class="cmp-best"></div></div>'
+            f'<aside class="cmp-side"><div class="cmp-side-h"><b>Модели</b><span class="cmp-count"></span></div>'
+            f'<input class="cmp-q" type="search" placeholder="Найти модель" aria-label="Найти модель">'
+            f'<div class="cmp-quick"><button type="button" data-q="top">Топ-12</button><button type="button" data-q="none">Снять все</button></div>'
+            f'<label class="cmp-eff"><input type="checkbox" checked> Все уровни размышлений</label>'
+            f'<div class="cmp-list"></div></aside></div></div></div>')
 
 
 data = load_data()

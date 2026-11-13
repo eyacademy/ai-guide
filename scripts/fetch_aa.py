@@ -62,17 +62,22 @@ def fetch():
         if e.code != 403:
             raise
         models = pages(API + "/free", key)
-    best = {}
+    year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).date().isoformat()
+    best, variants = {}, []
     for m in models:
         score = (m.get("evaluations") or {}).get("artificial_analysis_intelligence_index")
         if not isinstance(score, (int, float)):
             continue
-        name = re.sub(r"\s*\([^)]*\)\s*$", "", m.get("name", "")).strip()
+        full = m.get("name", "").strip()
+        name = re.sub(r"\s*\([^)]*\)\s*$", "", full).strip()
+        effort = full[len(name):].strip(" ()").lower()
+        creator = (m.get("model_creator") or {}).get("name", "")
+        if (m.get("release_date") or "") >= year_ago:
+            variants.append({"family": name, "effort": effort, "creator": creator, "score": round(score, 1), **metrics(m)})
         if name not in best or score > best[name]["score"]:
-            best[name] = {"name": name, "creator": (m.get("model_creator") or {}).get("name", ""), "score": round(score),
+            best[name] = {"name": name, "creator": creator, "score": round(score),
                           "released": m.get("release_date") or "", **metrics(m)}
     current = sorted(latest(best.values()), key=lambda x: -x["score"])
-    year_ago = (datetime.now(timezone.utc) - timedelta(days=365)).date().isoformat()
     by_creator = {}
     for m in current:
         if m["released"] >= year_ago:
@@ -80,13 +85,15 @@ def fetch():
     top = [{k: m[k] for k in ("name", "creator", "score")} for m in current[:20]]
     if len(top) < 5:
         raise ValueError("too few models")
-    keys = ("name", "creator", "score", "cost", "cost_total", "time", "tokens", "tokens_total")
-    compare = [{k: m[k] for k in keys} for m in current if m["cost"] and m["released"] >= year_ago][:24]
-    return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator, "compare": compare}
+    # Chart picker: every variant from the last year; the top current lines are ticked by default.
+    variants = [v for v in variants if v["cost"] or v["time"]]
+    default = [m["name"] for m in current if m["released"] >= year_ago and any(v["family"] == m["name"] for v in variants)][:12]
+    return {"updated": datetime.now(timezone.utc).isoformat(), "models": top, "by_creator": by_creator,
+            "variants": variants, "default": default}
 
 try:
     data = fetch()
-    print("fetched", len(data["models"]), "models,", len(data["compare"]), "with cost")
+    print("fetched", len(data["models"]), "models,", len(data["variants"]), "variants with cost or time")
 except Exception as e:
     print("API failed:", e)
     try:
