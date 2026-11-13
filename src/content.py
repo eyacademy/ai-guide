@@ -230,20 +230,22 @@ out.append(sec("agents", "03", "ИИ-агенты",
                "Чат-бот отвечает на вопросы. Агент сам выполняет задачу: планирует шаги, пользуется инструментами и доводит работу до результата.", tabify(ag)))
 
 # 5. media
-m = ""
+m = h3("Всё в одном", "Платформы, где в одной подписке собраны модели для фото, видео и звука.")
+m += grid([
+    ("Higgsfield", "Казахстанский единорог: фото, видео и звук в одном месте. Лучшие модели (Seedance, Kling, Veo, Nano Banana, Wan) и свои инструменты: Cinema Studio, Soul ID, Speak. Выбор маркетологов для соцсетей.", "https://higgsfield.ai", "из Казахстана"),
+    ("Adobe Firefly", "Модели Adobe, Google, OpenAI и FLUX в одной подписке, безопасно для коммерческого использования.", "https://firefly.adobe.com"),
+    ("Freepik", "Фотосток и ИИ-инструменты для картинок, видео и озвучки.", "https://www.freepik.com"),
+])
 m += h3("Изображения")
 m += grid([
     ("ChatGPT Images 2.5", "Генерация и точное редактирование прямо в ChatGPT. Читаемый текст на картинках, в том числе на кириллице.", "https://chatgpt.com"),
     ("Nano Banana 2 и Pro", "Модели Google для изображений, работают в приложении Gemini.", "https://deepmind.google/models/gemini-image/"),
     ("Midjourney", "Художественная генерация с сильным стилем. Версия V8.2.", "https://www.midjourney.com"),
     ("Grok Imagine", "Картинки и видео от SpaceXAI, в топ-5 рейтинга Artificial Analysis.", "https://grok.com/imagine"),
-    ("Adobe Firefly", "Модели Adobe, Google, OpenAI и FLUX в одной подписке, безопасно для коммерческого использования.", "https://firefly.adobe.com"),
     ("FLUX", "Модели Black Forest Labs. Есть открытые веса и API.", "https://bfl.ai"),
-    ("Freepik", "Фотосток и набор ИИ-инструментов для картинок и видео.", "https://www.freepik.com"),
 ])
 m += h3("Видео")
 m += grid([
-    ("Higgsfield", "Казахстанский единорог: лучшие модели (Seedance, Kling, Veo, Nano Banana, Wan) и свои инструменты Cinema Studio, Soul ID и Speak. Выбор маркетологов для роликов в соцсети.", "https://higgsfield.ai", "из Казахстана"),
     ("Veo 3.1 и Google Flow", "Видео со звуком по тексту и картинкам. Flow это студия Google для монтажа сцен.", "https://flow.google.com"),
     ("Gemini Omni Flash", "Создание и правка видео в диалоге: «убери человека слева», «сделай закат».", "https://deepmind.google/models/gemini-omni/"),
     ("Seedance 2.5", "Модель ByteDance: ролики до 30 секунд. Доступна в Dreamina (CapCut) и Higgsfield.", "https://dreamina.capcut.com"),
