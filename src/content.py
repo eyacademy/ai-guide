@@ -47,9 +47,21 @@ def model(creator, fallback):
     return models(creator, [fallback], 1)[0]
 
 
+VENDORS = []
+
+
 def vendor(by, name, text, pills, lk):
+    # Each big assistant becomes a tab: description and models on the left, links on the right.
     p = "".join(f'<span class="pill{" top" if i == 0 else ""}">{x}</span>' for i, x in enumerate(pills))
-    return f'<div class="vendor"><span class="by">{by}</span><h3>{logo(name, "vl", 30)}{name}</h3><p>{text}</p><div class="pills">{p}</div>{links(lk, name)}</div>'
+    VENDORS.append((name, f'<div class="vd"><div><span class="by">{by}</span><p>{text}</p><div class="pills">{p}</div></div>{links(lk, name)}</div>'))
+    return ""
+
+
+def vendor_tabs(extra):
+    tabs = VENDORS + extra
+    btns = "".join(f'<button type="button"{" class=on" if i == 0 else ""}>{logo(n, "tl", 16)}{n}</button>' for i, (n, _) in enumerate(tabs))
+    panels = "".join(f'<div class="pl-panel"{" hidden" if i else ""}>{b}</div>' for i, (_, b) in enumerate(tabs))
+    return f'<div class="pl-box"><div class="pl-tabs">{btns}</div>{panels}</div>'
 
 def sec(id_, num, title, lead, body):
     l = f'<p class="sec-lead">{lead}</p>' if lead else ""
@@ -95,7 +107,7 @@ out.append(sec("rating", "01", "Рейтинг моделей",
                rating))
 
 # 3. chat
-v = '<div class="vendors four">'
+v = ""
 v += vendor("OpenAI", "ChatGPT",
             "Универсальный помощник. Chat подходит для вопросов, текстов и файлов, Work берёт длинную задачу и возвращает готовые документы, таблицы и презентации. В приложении для компьютера есть режим Codex для работы с кодом. Самые сильные модели открыты в Work, Codex и платных тарифах.",
             models("OpenAI", ["GPT-6 Astra", "GPT-6.1 Sol", "GPT-5.6 Terra", "GPT-6 Luna"]),
@@ -124,7 +136,6 @@ v += vendor("Microsoft", "Copilot",
             [("Microsoft 365 Copilot", "https://www.microsoft.com/en-us/microsoft-365/copilot", "microsoft.com"),
              ("Copilot Chat для организаций", "https://www.microsoft.com/en-us/copilot/features/chat", "microsoft.com"),
              ("Личный Copilot", "https://copilot.microsoft.com", "copilot.microsoft.com")])
-v += "</div>"
 llm = v
 # Subscriptions: kinds, value, per-model limits and privacy in one tabbed block.
 kinds = ('<div class="explain">'
@@ -151,8 +162,7 @@ llm += h3("Подписки", "Какие бывают, сколько стоя�
 llm += ('<div class="pl-box"><div class="pl-tabs"><button type="button" class="on">Какие бывают</button>{SUBS_TABS}'
         '<button type="button">Как отключить обучение</button></div>'
         f'<div class="pl-panel">{kinds}</div>' + "{SUBS_PANELS}" + f'<div class="pl-panel" hidden>{privacy}</div></div>')
-llm += h3("Другие чат-боты")
-llm += grid([
+others = grid([
     ("DeepSeek", f"Сильная китайская модель {model('DeepSeek', 'DeepSeek V4.1 Flash')}. Бесплатный чат, веса можно скачать и запустить у себя.", "https://chat.deepseek.com", "открытая"),
     ("Perplexity", "Поиск в интернете с источниками под каждым ответом.", "https://www.perplexity.ai"),
     ("Grok", f"Модель {model('SpaceXAI', 'Grok 4.7')} от SpaceXAI. Встроен в соцсеть X.", "https://grok.com"),
@@ -164,6 +174,7 @@ llm += grid([
     ("Kimi", f"{model('Kimi', 'Kimi K3')} от Moonshot AI. Умеет запускать рой агентов для больших задач.", "https://www.kimi.com", "открытая"),
     ("t3.chat", "Одна подписка на модели разных компаний в одном окне.", "https://t3.chat"),
 ])
+llm = vendor_tabs([("Другие чат-боты", others)]) + llm
 out.append(sec("llm", "02", "Чат-боты и модели",
                "Для большинства задач хватит одного из четырёх сервисов ниже. У всех есть бесплатный тариф, но самые сильные модели открываются только в платных.", llm))
 

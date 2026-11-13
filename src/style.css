@@ -291,3 +291,10 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .pl-tabs::-webkit-scrollbar,#eyai .rt-tabs::-webkit-scrollbar,#eyai .rt-subs::-webkit-scrollbar,#eyai .cmp-tabs::-webkit-scrollbar,#eyai .cmp-subs::-webkit-scrollbar{display:none}
 #eyai .pl-tabs button,#eyai .rt button,#eyai .cmp-tabs button,#eyai .cmp-subs button{flex:0 0 auto;white-space:nowrap}
 }
+#eyai .vd{display:grid;grid-template-columns:1.25fr 1fr;gap:12px 36px;align-items:start}
+#eyai .vd .by{font-size:13px;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
+#eyai .vd p{font-size:15px;color:#44444e;margin-top:6px}
+#eyai .vd .pills{margin:14px 0 4px}
+#eyai .vd .links{margin-top:0}
+#eyai .tl{width:16px;height:16px;object-fit:contain;vertical-align:-3px;margin-right:7px}
+@media (max-width:900px){#eyai .vd{grid-template-columns:1fr}}
