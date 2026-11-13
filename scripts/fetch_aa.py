@@ -70,7 +70,7 @@ def fetch():
             continue
         full = m.get("name", "").strip()
         name = re.sub(r"\s*\([^)]*\)\s*$", "", full).strip()
-        effort = full[len(name):].strip(" ()").lower()
+        effort = full[len(name):].strip(" ()").lower().split(",")[0].strip()
         creator = (m.get("model_creator") or {}).get("name", "")
         if (m.get("release_date") or "") >= year_ago:
             variants.append({"family": name, "effort": effort, "creator": creator, "score": round(score, 1), **metrics(m)})
