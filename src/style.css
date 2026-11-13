@@ -339,3 +339,5 @@ font-family:'EYInterstate',Arial,sans-serif;color:var(--ink);background:var(--bg
 #eyai .rt .rt-dl{font-size:13px;background:var(--bg)}
 #eyai .rt .rt-dl:disabled{opacity:.6;cursor:default}
 @media (max-width:600px){#eyai .rt-dl{margin-left:0}}
+#eyai .rt .rt-dl{display:inline-flex;align-items:center;gap:7px}
+#eyai .dli{flex:0 0 auto}

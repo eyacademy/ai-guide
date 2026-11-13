@@ -256,7 +256,10 @@ def rating_tabs(data, value=False):
     out = [f'<div class="rt" data-colors="{colors}"><div class="rt-tabs">']
     for n, (i, t, subs, note) in enumerate(tabs):
         out.append(f'<button type="button" data-rt="{i}" data-note="{html.escape(T(note))}"{" class=on" if n == 0 else ""}>{T(t)}</button>')
-    out.append(f'<button type="button" class="rt-dl" title="{T("Скачать картинку со ссылкой на источник")}">{T("Скачать картинку")}</button></div>')
+    dl = ('<svg class="dli" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">'
+          '<path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.42l2.3 2.3V4a1 1 0 0 1 1-1z"/>'
+          '<path fill="currentColor" d="M4 15a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1z"/></svg>')
+    out.append(f'<button type="button" class="rt-dl" title="{T("Скачать картинку со ссылкой на источник")}">{dl}{T("Скачать картинку")}</button></div>')
     for i, t, subs, note in tabs:
         if len(subs) > 1:
             out.append(f'<div class="rt-subs" data-for="{i}" hidden>' + "".join(
